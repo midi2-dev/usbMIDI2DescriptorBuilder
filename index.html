@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>USB Descriptor Builder</title>
+    <script src="js/bootstrap.js"></script>
+    <link href="css/bootstrap.css" rel="stylesheet"/>
+
+</head>
+<body>
+<main>
+<div class="container">
+    <header class="d-flex flex-wrap justify-content-center py-3 mb-4 border-bottom">
+        <span class="fs-4">USB Descriptor Builder</span>
+    </header>
+</div>
+
+    <div class="container">
+
+        <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com">
+        </div>
+
+
+        <div class="input-group mb-3">
+            <span class="input-group-text">CDC</span>
+            <div class="input-group-text">
+                <input class="form-check-input mt-0" type="checkbox" value="" aria-label="CDC">
+            </div>
+            <span class="input-group-text">String Index</span>
+            <input type="text" class="form-control" placeholder="Usb String Index">
+        </div>
+
+        <span class="fs-5">MIDI 1.0 Ports</span>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">In</th>
+                <th scope="col">Out</th>
+                <th scope="col">String Index</th>
+                <th/>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+        <span class="fs-5">MIDI 2.0 Group Terminal Blocks</span>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">In</th>
+                <th scope="col">Out</th>
+                <th scope="col">String Index</th>
+                <th scope="col">First Grp.</th>
+                <th scope="col"># of Grps.</th>
+                <th scope="col">Protocol</th>
+                <th/>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+
+</body>
+</html>

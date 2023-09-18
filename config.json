@@ -56,26 +56,6 @@
       ]
     }
 
-  ,
-    {
-      "MIDI1Itf":[{"in":true, "out":true, "name": "Forced"}],
-      "name": "EP 2",
-      "productId":"6789AB",
-      "familyId":[1,23],
-      "modelId":[45,68],
-      "blocks":[
-        {
-          "name": "Endpoint 2",
-          "in"      : true,
-          "out"      : true,
-          "firstGroup"           : 1,
-          "numOfGroups"        : 16,
-          "protocol"       : 2,
-          "wMaxInputBandwidth"  : 0,
-          "wMaxOutputBandwidth" : 0
-        }
-      ]
-    }
 
   ]
 }

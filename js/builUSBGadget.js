@@ -2,6 +2,7 @@
 const config= require('../config.json');
 
 console.log(`#!/bin/bash`);
+console.log(`modprobe libcomposite`);
 console.log(`cd /sys/kernel/config/usb_gadget/`);
 console.log(`mkdir gadget`);
 console.log(`cd gadget`);
@@ -36,10 +37,13 @@ if(config.processUmpManually){
 }
 
 config.endpoints.map((ep,idx)=>{
-    console.log(`echo "${ep.name}" > functions/midi2.usb0/ep.${idx}/name`);
+    if(idx){
+        console.log(`mkdir -p functions/midi2.usb0/ep.${idx}`);
+    }
+    console.log(`echo "${ep.name}" > functions/midi2.usb0/ep.${idx}/ep_name`);
     console.log(`echo "${ep.productId}" > functions/midi2.usb0/ep.${idx}/product_id`);
 
-    console.log(`echo ${ep.defaultGTBProtocol} > functions/midi2.usb0/ep.${idx}/protocol`);
+    console.log(`echo ${ep.defaultGTBProtocol || 1} > functions/midi2.usb0/ep.${idx}/protocol`);
 
     //"0x"+("000000" + Number((m[0] << 16) + (m[1]<<8) + m[2]).toString(16)).slice (-6).toUpperCase();
     console.log(`echo 0x${("0000" + Number( (ep.familyId[0]<<8) + ep.familyId[1]).toString(16)).slice (-4).toUpperCase()} > functions/midi2.usb0/ep.${idx}/family`);
@@ -48,6 +52,9 @@ config.endpoints.map((ep,idx)=>{
     console.log(`echo 0x${("00000000" + Number((config.version[0] << 24) +(config.version[1] << 16) + (config.version[2]<<8) + config.version[3]).toString(16)).slice (-8).toUpperCase()} > functions/midi2.usb0/ep.${idx}/sw_revision`);
 
     ep.blocks.map((gtb, gidx)=>{
+        if(idx || gidx){
+            console.log(`mkdir -p functions/midi2.usb0/ep.${idx}/block.${gidx}`);
+        }
         console.log(`echo "${gtb.name}" > functions/midi2.usb0/ep.${idx}/block.${gidx}/name`);
         console.log(`echo ${gtb.firstGroup-1} > functions/midi2.usb0/ep.${idx}/block.${gidx}/first_group`);
         console.log(`echo ${gtb.numOfGroups} > functions/midi2.usb0/ep.${idx}/block.${gidx}/num_groups`);
@@ -62,9 +69,11 @@ config.endpoints.map((ep,idx)=>{
         }
     });
 
-    console.log(`ln -s functions/midi2.usb0 configs/c.1/`);
+    
 
 });
+console.log(`ln -s functions/midi2.usb0 configs/c.1/`);
+console.log('echo `ls /sys/class/udc` > UDC');
 
 
 

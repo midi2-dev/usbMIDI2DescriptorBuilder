@@ -1,0 +1,198 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "idVendor": {
+      "type": "string"
+    },
+    "idProduct": {
+      "type": "string"
+    },
+    "manufacturer": {
+      "type": "string",
+      "maxLength": 254,
+      "format": "UTF8"
+    },
+    "manufacturerId": {
+      "title": "Manufacturer Id",
+      "description": "This is the System Exclusive ID Number. It is an array of the 3 data byte values (as integers) in the same structure as defined in MIDI-CI Inquiry & Negotiation Messages.",
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "maximum": 127,
+        "minimum": 0
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "version": {
+      "title": "Version Id",
+      "description": "This is an array of the 4 data byte values (as integers) in the same structure as defined in MIDI-CI Inquiry & Negotiation Messages.",
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "maximum": 127,
+        "minimum": 0
+      },
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "product": {
+      "type": "string",
+      "maxLength": 98,
+      "format": "UTF8"
+    },
+    "serialNumber": {
+      "type": "string",
+      "maxLength":42
+    },
+
+    "power": {
+      "type": "integer",
+      "maximum": 255
+    },
+
+    "CDC": {
+      "type": "boolean"
+    },
+    "CDCName": {
+      "type": "string"
+    },
+
+    "processUmpManually": {
+      "type": "boolean"
+    },
+    "endpoints": {
+      "type": "array",
+      "items":{
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "productId": {
+              "type": "string",
+              "maxLength":42
+            },
+            "familyId": {
+              "title": "Family Id",
+              "description": "This is an array of the 2 data byte values (as integers) in the same structure as defined in MIDI-CI Inquiry & Negotiation Messages.",
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "maximum": 127,
+                "minimum": 0
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "modelId": {
+              "title": "Model Id",
+              "description": "This is an array of the 2 data byte values (as integers) in the same structure as defined in MIDI-CI Inquiry & Negotiation Messages.",
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "maximum": 127,
+                "minimum": 0
+              },
+              "minItems": 2,
+              "maxItems": 2
+            },
+            "MIDI1Itf": {
+              "type": "array",
+              "items": {
+                  "type": "object",
+                  "properties": {
+                    "in": {
+                      "type": "boolean"
+                    },
+                    "out": {
+                      "type": "boolean"
+                    },
+                    "name": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "in",
+                    "out",
+                    "name"
+                  ]
+                }
+            },
+            "defaultGTBProtocol": {
+              "type": "integer"
+            },
+            "blocks": {
+              "type": "array",
+              "items":
+                {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "in": {
+                      "type": "boolean"
+                    },
+                    "out": {
+                      "type": "boolean"
+                    },
+                    "uihintIn": {
+                      "type": "boolean"
+                    },
+                    "uihintOut": {
+                      "type": "boolean"
+                    },
+                    "firstGroup": {
+                      "type": "integer"
+                    },
+                    "numOfGroups": {
+                      "type": "integer"
+                    },
+                    "wMaxInputBandwidth": {
+                      "type": "integer"
+                    },
+                    "wMaxOutputBandwidth": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "in",
+                    "out",
+                    "uihintIn",
+                    "uihintOut",
+                    "firstGroup",
+                    "numOfGroups",
+                    "wMaxInputBandwidth",
+                    "wMaxOutputBandwidth"
+                  ]
+                }
+
+            }
+          },
+          "required": [
+            "name",
+            "productId",
+            "familyId",
+            "modelId",
+            "MIDI1Itf",
+            "defaultGTBProtocol",
+            "blocks"
+          ]
+        }
+    }
+  },
+  "required": [
+    "idVendor",
+    "idProduct",
+    "manufacturer",
+    "manufacturerId",
+    "version",
+    "product",
+    "serialNumber",
+    "power",
+    "endpoints"
+  ]
+}

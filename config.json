@@ -29,28 +29,10 @@
           "in"      : true,
           "out"      : true,
           "uihintIn": true,
-          "uihintOut": false,
+          "uihintOut": true,
           "firstGroup"           : 1,
-          "numOfGroups"        : 1,
+          "numOfGroups"        : 16,
           "wMaxInputBandwidth"  : 0,
-          "wMaxOutputBandwidth" : 0
-        },
-        {
-          "name": "IN EXT",
-          "in"      : true,
-          "isMIDI1": true,
-          "firstGroup"            : 2,
-          "numOfGroups"        : 1,
-          "wMaxInputBandwidth"  : 0,
-          "wMaxOutputBandwidth" : 0
-        }
-      ,
-        {
-          "name": "OUT EXT",
-          "out"      : true,
-          "firstGroup"        : 3,
-          "numOfGroups"        : 1,
-          "wMaxInputBandwidth"  : 1,
           "wMaxOutputBandwidth" : 0
         }
       ]

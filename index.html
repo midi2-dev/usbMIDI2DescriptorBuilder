@@ -214,8 +214,8 @@
         <script lang="javascript">
 
             async function launch(){
-                schema = await fetchJson("../configSchema.json");
-                configData = await fetchJson("../config.json");
+                schema = await fetchJson("./configSchema.json");
+                configData = await fetchJson("./config.json");
 
                 codeMirror = CodeMirror(document.getElementById("data"), {
                     value: JSON.stringify(configData, null, 4),

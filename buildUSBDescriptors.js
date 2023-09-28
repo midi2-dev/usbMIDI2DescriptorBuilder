@@ -30,8 +30,11 @@ function buildTinyUSBDescriptors(config){
 
     let stringIdx = [""];
 
-    function U16_TO_U8S_LE(v){
-        return [v & 0xFF, (v>>8) & 0xFF];
+    function U16_TO_U8S_LE(v,m=""){
+        return [
+            {v:v & 0xFF, m:`${m}LSB`},
+            {v:(v>>8) & 0xFF, m:`${m}MSB`}
+        ];
     }
 
     function arrayToHex(arrHex, joinStr = ' '){
@@ -64,15 +67,15 @@ function buildTinyUSBDescriptors(config){
 
 
     let descriptor = [
-        0x09,                   // (  9) bLength
-        0x02,                   // (  2) bDescriptorType
-        0x00,                   //wTotalLengthLSB
-        0x00,                   // (  0) wTotalLengthMSB
-        (config.endpoints.length*2) + (config.CDC?2:0),          // (  4) bNumInterfaces
-        0x01,                   // (  1) bConfigurationValue
-        0x00,                   // (  0) iConfiguration
-        0x80,                   // (128) bmAttributes
-        config.power/2,                   // ( 50) bMaxPower (really??)
+        {v:0x09, m: "bLength"},
+        {v:0x02, m: "bDescriptorType = CONFIGURATION"},
+        {v:0x00, m: "wTotalLengthLSB"}, //These are Replaced Later below
+        {v:0x00, m: "wTotalLengthMSB"},
+        {v:(config.endpoints.length*2) + (config.CDC?2:0), m: "bNumInterfaces"},
+        {v:0x01, m: "bConfigurationValue"},
+        {v:0x00, m: "iConfiguration"},
+        {v:0x80, m: "bmAttributes"},
+        {v:config.power/2, m: `bMaxPower (${config.power}mA)`}
     ];
 
     if(config.CDC){
@@ -80,77 +83,79 @@ function buildTinyUSBDescriptors(config){
         //TUD_CDC_DESCRIPTOR(_itfnum, _stridx, _ep_notif, _ep_notif_size, _epout, _epin, _epsize)
 
         descriptor.push(...[
-            /* Interface Associate */
-            8,
-            TUSB_DESC_INTERFACE_ASSOCIATION,
-            ITF_NUM_CDC,
-            2,
-            TUSB_CLASS_CDC,
-            CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,
-            CDC_COMM_PROTOCOL_NONE,
-            0,
-            /* CDC Control Interface */
-            9,
-            0x04, //TUSB_DESC_INTERFACE,
-            ITF_NUM_CDC,
-            0,
-            1,
-            TUSB_CLASS_CDC,
-            CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,
-            CDC_COMM_PROTOCOL_NONE,
-            addString(config.CDCName),
-            /* CDC Header */
-            5,
-            TUSB_DESC_CS_INTERFACE,
-            CDC_FUNC_DESC_HEADER,
-            ...U16_TO_U8S_LE(0x0120),
-            /* CDC Call */
-            5,
-            TUSB_DESC_CS_INTERFACE,
-            CDC_FUNC_DESC_CALL_MANAGEMENT,
-            0,
-            (ITF_NUM_CDC + 1),
-            /* CDC ACM: support line request */
-            4,
-            TUSB_DESC_CS_INTERFACE,
-            CDC_FUNC_DESC_ABSTRACT_CONTROL_MANAGEMENT,
-            2,
-            /* CDC Union */
-            5,
-            TUSB_DESC_CS_INTERFACE,
-            CDC_FUNC_DESC_UNION,
-            ITF_NUM_CDC,
-            (ITF_NUM_CDC + 1),
-            /* Endpoint Notification */
-            7,
-            TUSB_DESC_ENDPOINT,
-            EPNUM_CDC_NOTIF,
-            TUSB_XFER_INTERRUPT,
-            ...U16_TO_U8S_LE(8), //_ep_notif_size
-            16,
-            /* CDC Data Interface */
-            9,
-            TUSB_DESC_INTERFACE,
-            (ITF_NUM_CDC+1),
-            0,
-            2,
-            TUSB_CLASS_CDC_DATA,
-            0,
-            0,
-            0,
-            /* Endpoint Out */
-            7, TUSB_DESC_ENDPOINT,
-            EPNUM_CDC_OUT,
-            TUSB_XFER_BULK,
-            ...U16_TO_U8S_LE(64), //_epsize
-            0,
-            /* Endpoint In */
-            7,
-            TUSB_DESC_ENDPOINT,
-            EPNUM_CDC_IN,
-            TUSB_XFER_BULK,
-            ...U16_TO_U8S_LE(64), //_epsize
-            0
+            {m:"---------------------------"},
+            {m:"Interface Associate"},
+            {v:8},
+            {v:TUSB_DESC_INTERFACE_ASSOCIATION,m:"TUSB_DESC_INTERFACE_ASSOCIATION"},
+            {v:ITF_NUM_CDC,m:"ITF_NUM_CDC"},
+            {v:2},
+            {v:TUSB_CLASS_CDC,m:"TUSB_CLASS_CDC"},
+            {v:CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,m:"CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL"},
+            {v:CDC_COMM_PROTOCOL_NONE,m:"CDC_COMM_PROTOCOL_NONE"},
+            {v:0},
+            {m:"CDC Control Interface"},
+            {v:9},
+            {v:0x04, m:"TUSB_DESC_INTERFACE"},
+            {v:ITF_NUM_CDC,m:"Interface number"},
+            {v:0},
+            {v:1},
+            {v:TUSB_CLASS_CDC,m:"TUSB_CLASS_CDC"},
+            {v:CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,m:"CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL"},
+            {v:CDC_COMM_PROTOCOL_NONE,m:"CDC_COMM_PROTOCOL_NONE"},
+            {v:addString(config.CDCName),m:"String Index"},
+            {m:"CDC Header"},
+            {v:5},
+            {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
+            {v:CDC_FUNC_DESC_HEADER,m:"CDC_FUNC_DESC_HEADER"},
+            ...U16_TO_U8S_LE(0x0120,""),
+            {m:"CDC Call"},
+            {v:5},
+            {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
+            {v:CDC_FUNC_DESC_CALL_MANAGEMENT,m:"CDC_FUNC_DESC_CALL_MANAGEMENT"},
+            {v:0},
+            {v:(ITF_NUM_CDC + 1),m:"Interface Number"},
+            {m:"CDC ACM: support line request"},
+            {v:4},
+            {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
+            {v:CDC_FUNC_DESC_ABSTRACT_CONTROL_MANAGEMENT,m:"CDC_FUNC_DESC_ABSTRACT_CONTROL_MANAGEMENT"},
+            {v:2},
+            {m:"CDC Union"},
+            {v:5},
+            {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
+            {v:CDC_FUNC_DESC_UNION,m:"CDC_FUNC_DESC_UNION"},
+            {v:ITF_NUM_CDC,m:"ITF_NUM_CDC"},
+            {v:(ITF_NUM_CDC + 1),m:"ITF_NUM_CDC + 1"},
+            {m:"Endpoint Notification"},
+            {v:7},
+            {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
+            {v:EPNUM_CDC_NOTIF,m:"EPNUM_CDC_NOTIF"},
+            {v:TUSB_XFER_INTERRUPT,m:"TUSB_XFER_INTERRUPT"},
+            ...U16_TO_U8S_LE(8,"_ep_notif_size"), //_ep_notif_size
+            {v:16},
+            {m:"CDC Data Interface"},
+            {v:9},
+            {v: TUSB_DESC_INTERFACE,m:"TUSB_DESC_INTERFACE"},
+            {v:(ITF_NUM_CDC+1),m:"Interface Number"},
+            {v:0},
+            {v:2},
+            {v:TUSB_CLASS_CDC_DATA,m:"TUSB_CLASS_CDC_DATA"},
+            {v:0},
+            {v:0},
+            {v:0},
+            {m:"Endpoint Out"},
+            {v:7},
+            {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
+            {v:EPNUM_CDC_OUT,m:"EPNUM_CDC_OUT"},
+            {v:TUSB_XFER_BULK,m:"TUSB_XFER_BULK"},
+            ...U16_TO_U8S_LE(64,"epSize"), //_epsize
+            {v:0},
+            {m:"Endpoint In"},
+            {v:7},
+            {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
+            {v:EPNUM_CDC_IN,m:"EPNUM_CDC_IN"},
+            {v:TUSB_XFER_BULK,m:"TUSB_XFER_BULK"},
+            ...U16_TO_U8S_LE(64,"epSize"), //_epsize
+            {v:0}
         ]);
     }
 
@@ -160,30 +165,30 @@ function buildTinyUSBDescriptors(config){
         let gtbOutId=[];
 
         ep.gtbDescriptor = [
-            5, //HeaderLength
-            MIDI_CS_INTERFACE_GR_TRM_BLOCK,
-            MIDI_GR_TRM_BLOCK_HEADER,
-            ...U16_TO_U8S_LE((13 * ep.blocks.length) + 5) ,
+            {v:5,m:"HeaderLength"},
+            {v:MIDI_CS_INTERFACE_GR_TRM_BLOCK,m:"bDescriptorType = CS_GR_TRM_BLOCK"},
+            {v:MIDI_GR_TRM_BLOCK_HEADER,m:"bDescriptorSubtype = GR_TRM_BLOCK_HEADER"},
+            ...U16_TO_U8S_LE((13 * ep.blocks.length) + 5,"wTotalLength")
         ];
 
         ep.blocks.map((gtb, idx)=>{
-            if(gtb.in){gtbInId.push(idx+1)};
-            if(gtb.out){gtbOutId.push(idx+1)};
+            if(gtb.in){gtbInId.push({v:idx+1,m:"baAssoGrpTrmBlkID"})};
+            if(gtb.out){gtbOutId.push({v:idx+1,m:"baAssoGrpTrmBlkID"})};
             //gtbDescriptor
 
             let protocol = gtb.protocol || ep.defaultGTBProtocol || 0;
             ep.gtbDescriptor.push(
-                13, //length
-                MIDI_CS_INTERFACE_GR_TRM_BLOCK,
-                MIDI_GR_TRM_BLOCK,
-                idx+1,
-                gtb.in && gtb.out? 0x00: gtb.out?0x02: 0x01,
-                gtb.firstGroup -1,
-                gtb.numOfGroups,
-                addString(gtb.name),
-                protocol===2?0x11:protocol===1?0x02:0,
-                ...U16_TO_U8S_LE(gtb.wMaxInputBandwidth || 0),
-                ...U16_TO_U8S_LE(gtb.wMaxOutputBandwidth || 0)
+                {v:13,m:"bLength"},
+                {v:MIDI_CS_INTERFACE_GR_TRM_BLOCK,m:"bDescriptorType = CS_GR_TRM_BLOCK"},
+                {v:MIDI_GR_TRM_BLOCK,m:"bDescriptorSubtype = GR_TRM_BLOCK"},
+                {v:idx+1,m:"bGrpTrmBlkID"},
+                {v: gtb.in && gtb.out? 0x00: gtb.out?0x02: 0x01,m:"bGrpTrmBlkType = "+gtb.in && gtb.out? "birectional": gtb.out?"out": "in"},
+                {v:gtb.firstGroup -1,m:"First Group"},
+                {v:gtb.numOfGroups,m:"nNumGroupTrm"},
+                {v:addString(gtb.name),m:"iBlockItem"},
+                {v:protocol===2?0x11:protocol===1?0x02:0,m:"bMIDIProtocol"},
+                ...U16_TO_U8S_LE(gtb.wMaxInputBandwidth || 0,"wMaxInputBandwidth"),
+                ...U16_TO_U8S_LE(gtb.wMaxOutputBandwidth || 0,"wMaxOutputBandwidth")
             );
         });
 
@@ -198,56 +203,57 @@ function buildTinyUSBDescriptors(config){
             +4; // ----- Audio MS Descriptor - CS Endpoint - EP General
 
         descriptor.push(...[
-            // ----- Interface Association Descriptor
-            0x08,                   // (  8) bLength
-            0x0B,                   // ( 11) bDescriptorType
-            ITF_NUM_MIDI,           // (  2) bFirstInterface
-            0x02,                   // (  2) bInterfaceCount
-            0x01,                   // (  1) bFunctionClass
-            0x03,                   // (  0) bFunctionSubClass
-            0x00,                   // (  0) bFunctionProtocol
-            0x00,                   // (  0) iFunction
+            {m:"---------------------------"},
+            {m:"Interface Association Descriptor"},
+            {v:0x08,m:"bLength"},
+            {v:0x0B,m:"bDescriptorType"},
+            {v:ITF_NUM_MIDI,m:"bFirstInterface"},
+            {v:0x02,m:"bInterfaceCount"},
+            {v:0x01,m:"bFunctionClass"},
+            {v:0x03,m:"bFunctionSubClass"},
+            {v:0x00,m:"bFunctionProtocol"},
+            {v:0x00,m:"iFunction"},
 
-            // ----- Interface - Audio Control
-            0x09,                   // (  9) bLength
-            0x04,                   // (  4) bDescriptorType
-            ITF_NUM_MIDI,           // (  2) bInterfaceNumber
-            0x00,                   // (  0) bAlternateSetting
-            0x00,                   // (  0) bNumEndpoints
-            0x01,                   // (  1) bInterfaceClass
-            0x01,                   // (  1) bInterfaceSubClass
-            0x00,                   // (  0) bInterfaceProtocol
-            0x00,                   // (  0) iInterface
+            {m:"Interface - Audio Control"},
+            {v:0x09,m:"bLength"},
+            {v:0x04,m:"bDescriptorType = INTERFACE"},
+            {v:ITF_NUM_MIDI,m:"bInterfaceNumber"},
+            {v:0x00,m:"bAlternateSetting"},
+            {v:0x00,m:"bNumEndpoints"},
+            {v:0x01,m:"bInterfaceClass = AUDIO"},
+            {v:0x01,m:"bInterfaceSubClass = AUDIO_CONTRO"},
+            {v:0x00,m:"bInterfaceProtocol"},
+            {v:0x00,m:"iInterface"},
 
-            // ----- Audio AC Descriptor - Header
-            0x09,                   // (  9) bLength
-            0x24,                   // ( 36) bDescriptorType
-            0x01,                   // (  1) bDescriptorSubtype
-            0x00,                   // (  0) bcdACD0
-            0x01,                   // (  1) bcdACD1
-            0x09,                   // (  9) wTotalLengthLSB
-            0x00,                   // (  0) wTotalLengthMSB
-            0x01,                   // (  1) Number of streaming interfaces
-            ITF_NUM_MIDI+1,         // (  3) MIDIStreaming Interface
+            {m:"Audio AC Descriptor - Header"},
+            {v:0x09,m:"bLength"},
+            {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
+            {v:0x01,m:"bDescriptorSubtype = HEADER"},
+            {v:0x00,m:"bcdACD0"},
+            {v:0x01,m:"bcdACD1"},
+            {v:0x09,m:"wTotalLengthLSB"},
+            {v:0x00,m:"wTotalLengthMSB"},
+            {v:0x01,m:"bInCollection"},
+            {v:ITF_NUM_MIDI+1,m:"baInterfaceNr(1)"},
 
-            // ----- Interface - MIDIStreaming
-            0x09,                   // (  9) bLength
-            0x04,                   // (  4) bDescriptorType
-            ITF_NUM_MIDI+1,         // (  3) bInterfaceNumber
-            0x00,                   // (  0) bAlternateSetting
-            0x02,                   // (  2) bNumEndpoints
-            0x01,                   // (  1) bInterfaceClass
-            0x03,                   // (  3) bInterfaceSubClass
-            0x00,                   // (  0) bInterfaceProtocol
-            addString(ep.name)   ,                // (  5) iInterface - unused???
+            {m:"Interface - MIDIStreaming"},
+            {v:0x09,m:"bLength"},
+            {v:0x04,m:"bDescriptorType = INTERFACE"},
+            {v:ITF_NUM_MIDI+1,m:"bInterfaceNumber"},
+            {v:0x00,m:"bAlternateSetting"},
+            {v:0x02,m:"bNumEndpoints"},
+            {v:0x01,m:"bInterfaceClass = AUDIO"},
+            {v:0x03,m:"bInterfaceSubClass = MIDISTREAMING"},
+            {v:0x00,m:"bInterfaceProtocol"},
+            {v:addString(ep.name),m:"iInterface"}, //Unused according to docs? but some Hosts use it?
 
-            // ----- Audio MS Descriptor - CS Interface - MS Header
-            0x07,                   // (  7) bLength
-            0x24,                   // ( 36) bDescriptorType
-            0x01,                   // (  1) bDescriptorSubtype
-            0x00,                   // (  0) bcdMSC_LSB
-            0x01,                   // (  1) bcdMSC_MSB
-            ...U16_TO_U8S_LE(m1TotalLen)
+            {m:"Audio MS Descriptor - CS Interface - MS Header"},
+            {v:0x07,m:"bLength"},
+            {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
+            {v:0x01,m:"bDescriptorSubtype = MS_HEADER"},
+            {v:0x00,m:"bcdMSCLSB"},
+            {v:0x01,m:"bcdMSCMSB"},
+            ...U16_TO_U8S_LE(m1TotalLen,"wTotalLength")
             // 0x5D,                   // ( 93) wTotalLengthLSB ????? Total size of class-specific descriptors.
             // 0x00,                   // (  0) wTotalLengthMSB
         ]);
@@ -256,50 +262,50 @@ function buildTinyUSBDescriptors(config){
         let midiOutJackId=[];
         ep.MIDI1Itf.map((m1,idx)=>{
             if(m1.in){
-                midiInJackId.push((idx*4) + 1 + (epIdx*16));
+                midiInJackId.push({v:(idx*4) + 1 + (epIdx*16),m:"jack Id"});
                 descriptor.push(...[
-                    // ----- Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Embedded)
-                    0x06,                   // (  6) bLength
-                    0x24,                   // ( 36) bDescriptorType
-                    0x02,                   // (  2) bDescriptorSubtype
-                    0x01,                   // (  2) bJackType
-                    (idx*4) + 1 + (epIdx*16),                   // (  2) bJackID
-                    addString(m1.name),                // (  6) iJack
+                    {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Embedded)"},
+                    {v:0x06,m:"bLength"},
+                    {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
+                    {v:0x02,m:"bDescriptorSubtype = MIDI_IN_JACK"},
+                    {v:0x01,m:"bJackType = EMBEDDED."},
+                    {v: (idx*4) + 1 + (epIdx*16),m:"bJackID"},
+                    {v:addString(m1.name),m:"iJack"},
 
-                    // ----- Audio MS Descriptor - CS Interface - MIDI OUT Jack (EXT) (Main Out)
-                    0x09,                   // (  9) bLength
-                    0x24,                   // ( 36) bDescriptorType
-                    0x03,                   // (  3) bDescriptorSubtype
-                    0x02,                   // (  2) bJackType External
-                    (idx*4) + 16 + 1 + (epIdx*16),                // (  4) bJackID
-                    0x01,                   // (  1) bNrInputPins
-                    (idx*4) + 1 + (epIdx*16),                   // (  1) baSourceID
-                    0x01,                   // (  1) baSourcePin
-                    addString(m1.name),                   // (  6) iJack
+                    {m:"Audio MS Descriptor - CS Interface - MIDI OUT Jack (EXT) (Main Out)"},
+                    {v:0x09,m:"bLength"},
+                    {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
+                    {v:0x03,m:"bDescriptorSubtype = MIDI_OUT_JACK"},
+                    {v:0x02,m:"bJackType = EMBEDDED."},
+                    {v:(idx*4) + 16 + 1 + (epIdx*16),m:"bJackID"},
+                    {v:0x01,m:"bNrInputPins"},
+                    {v:(idx*4) + 1 + (epIdx*16),m:"baSourceID"},
+                    {v:0x01,m:"baSourcePin"},
+                    {v:addString(m1.name),m:"iJack"},
                 ]);
             }
 
             if(m1.out){
-                midiOutJackId.push((idx*4) + 16  + 2 + (epIdx*16));
+                midiOutJackId.push({v:(idx*4) + 16  + 2 + (epIdx*16),m:"Jach Id"});
                 descriptor.push(...[
-                    // ----- Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Main In)
-                    0x06,                   // (  6) bLength
-                    0x24,                   // ( 36) bDescriptorType
-                    0x02,                   // (  2) bDescriptorSubtype
-                    0x02,                   // (  2) bJackType
-                    (idx*4) + 2  + (epIdx*16),                   // (  2) bJackID
-                    addString(m1.name),                // (  6) iJack
+                    {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Main In)"},
+                    {v:0x06,m:"bLength"},
+                    {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
+                    {v:0x02,m:"bDescriptorSubtype = MIDI_IN_JACK"},
+                    {v:0x02,m:"bJackType = EXTERNAL"},
+                    {v:(idx*4) + 2  + (epIdx*16),m:"bJackID"},
+                    {v:addString(m1.name),m:"iJack"},
 
-                    // ----- Audio MS Descriptor - CS Interface - MIDI IN Jack (EMB) (Main Out)
-                    0x09,                   // (  6) bLength
-                    0x24,                   // ( 36) bDescriptorType
-                    0x03,                   // (  2) bDescriptorSubtype
-                    0x01,                   // (  1) bJackType
-                    (idx*4) + 16 +2 + (epIdx*16),                   // (  1) bJackID
-                    0x01,                   //Number of Input Pins of this Jack
-                    (idx*4) + 2  + (epIdx*16),                   // (  1) baSourceID
-                    0x01,                   // (  1) baSourcePin
-                    addString(m1.name),                   // (  6) iJack
+                    {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EMB) (Main Out)"},
+                    {v:0x09,m:"bLength"},
+                    {v:0x24,m:"bDescriptorType"},
+                    {v:0x03,m:"bDescriptorSubtype"},
+                    {v:0x01,m:"bJackType"},
+                    {v:(idx*4) + 16 +2 + (epIdx*16),m:"bJackID"},
+                    {v:0x01,m:"Number of Input Pins of this Jack"},
+                    {v:(idx*4) + 2  + (epIdx*16),m:"baSourceID"},
+                    {v:0x01,m:"baSourcePin"},
+                    {v:addString(m1.name),m:"iJack"},
                 ]);
             }
 
@@ -309,44 +315,44 @@ function buildTinyUSBDescriptors(config){
 
         if(midiOutJackId.length){
             descriptor.push(...[
-                // ----- EP Descriptor - Endpoint - MIDI OUT
-                0x09,                   // (  7) bLength
-                0x05,                   // (  5) bDescriptorType
-                (epIdx) + EPNUM_MIDI,             // (  1) bEndpointAddress
-                0x02,                   // (  2) bmAttributes
-                0x40,                   // (  0) wMaxPacketSizeLSB
-                0x00,                   // (  2) wMaxPacketSizeMSB
-                0x00,                   // (  0) bInterval
-                0x00,                   // (  0) bRefresh
-                0x00,                   // (  0) bSynchAddress
+                {m:"EP Descriptor - Endpoint - MIDI OUT"},
+                {v:0x09,m:"bLength"},
+                {v:0x05,m:"bDescriptorType = ENDPOINT"},
+                {v:(epIdx) + EPNUM_MIDI,m:"bEndpointAddress (OUT)"},
+                {v:0x02,m:"bmAttributes"},
+                {v:0x40,m:"wMaxPacketSizeLSB"},
+                {v:0x00,m:"wMaxPacketSizeMSB"},
+                {v:0x00,m:"bInterval"},
+                {v:0x00,m:"bRefresh"},
+                {v:0x00,m:"bSynchAddress"},
 
-                // ----- Audio MS Descriptor - CS Endpoint - EP General
-                0x04 + midiOutJackId.length,                   // (  6) bLength
-                0x25,                   // ( 37) bDescriptorType
-                0x01,                   // (  1) bDescriptorSubtype
-                midiOutJackId.length,                   // (  2) bNumEmbMIDJack
+                {m:"Audio MS Descriptor - CS Endpoint - EP General"},
+                {v:0x04 + midiOutJackId.length,m:"bLength"},
+                {v:0x25,m:"bDescriptorType = CS_ENDPOINT"},
+                {v:0x01,m:"bDescriptorSubtype = MS_GENERAL"},
+                {v:midiOutJackId.length,m:"bNumEmbMIDJack"},
                 ...midiOutJackId
             ]);
         }
 
         if(midiInJackId.length){
             descriptor.push(...[
-                // ----- EP Descriptor - Endpoint - MIDI IN
-                0x09,                   // (  7) bLength
-                0x05,                   // (  5) bDescriptorType
-                0x80+ (epIdx) +EPNUM_MIDI,        // (129) bEndpointAddress
-                0x02,                   // (  2) bmAttributes
-                0x40,                   // (  0) wMaxPacketSizeLSB
-                0x00,                   // (  2) wMaxPacketSizeMSB
-                0x00,                   // (  0) bInterval
-                0x00,                   // (  0) bRefresh
-                0x00,                   // (  0) bSynchAddress
+                {m:"EP Descriptor - Endpoint - MIDI IN"},
+                {v:0x09,m:"bLength"},
+                {v:0x05,m:"bDescriptorType = ENDPOINT"},
+                {v:0x80+ (epIdx) +EPNUM_MIDI,m:"bEndpointAddress (IN)"},
+                {v:0x02,m:"bmAttributes"},
+                {v:0x40,m:"wMaxPacketSizeLSB"},
+                {v:0x00,m:"wMaxPacketSizeMSB"},
+                {v:0x00,m:"bInterval"},
+                {v:0x00,m:"bRefresh"},
+                {v:0x00,m:"bSynchAddress"},
 
-                // ----- Audio MS Descriptor - CS Endpoint - MS General
-                0x04 + midiInJackId.length,                   // (  6) bLength
-                0x25,                   // ( 37) bDescriptorType
-                0x01,                   // (  1) bDescriptorSubtype
-                midiInJackId.length,                   // (  2) bNumEmbMIDJack
+                {m:"Audio MS Descriptor - CS Endpoint - MS General"},
+                {v:0x04 + midiInJackId.length,m:"bLength"},
+                {v:0x25,m:"bDescriptorType = CS_ENDPOINT"},
+                {v:0x01,m:"bDescriptorSubtype = MS_GENERAL"},
+                {v:midiInJackId.length,m:"bNumEmbMIDJack"},
                 ...midiInJackId
             ]);
         }
@@ -357,74 +363,72 @@ function buildTinyUSBDescriptors(config){
         ep.interfaceId = ITF_NUM_MIDI+1;
 
         descriptor.push(...[
+            {m:"Interface - MIDIStreaming - Alternate Setting #1"},
+            {v:0x09,m:"bLength"},
+            {v:0x04,m:"bDescriptorType = INTERFACE"},
+            {v:ITF_NUM_MIDI+1,m:"bInterfaceNumber"},
+            {v:0x01,m:"bAlternateSetting"},
+            {v:0x02,m:"bNumEndpoints"},
+            {v:0x01,m:"bInterfaceClass = AUDIO"},
+            {v:0x03,m:"bInterfaceSubClass = MIDISTREAMING"},
+            {v:0x00,m:" bInterfaceProtocol"},
+            {v:addString(ep.name),m:"iInterface"}, //Unused??
 
+            {m:"Audio MS Descriptor - CS Interface - MS Header"},
+            {v:0x07,m:"bLength"},
+            {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
+            {v:0x01,m:"bDescriptorSubtype = MS_HEADER"},
+            {v:0x00,m:"bcdMSC_LSB"},
+            {v:0x02,m:"bcdMSC_MSB"},
+            {v:0x07,m:"wTotalLengthLSB"},
+            {v:0x00,m:"wTotalLengthMSB"},
 
-            // ----- Interface - MIDIStreaming - Alternate Setting #1
-            0x09,                   // (  9) bLength
-            0x04,                   // (  4) bDescriptorType
-            ITF_NUM_MIDI+1,         // (  1) bInterfaceNumber
-            0x01,                   // (  1) bAlternateSetting
-            0x02,                   // (  2) bNumEndpoints
-            0x01,                   // (  1) bInterfaceClass
-            0x03,                   // (  3) bInterfaceSubClass
-            0x00,                   // (  0) bInterfaceProtocol
-            addString(ep.name),                   // (  5) iInterface
+            {m:"EP Descriptor - Endpoint - MIDI OUT"},
+            {v:0x07,m:"bLength"},
+            {v:0x05,m:"bDescriptorType = ENDPOINT"},
+            {v:(epIdx) + EPNUM_MIDI,m:"bEndpointAddress (OUT)"},
+            {v:0x02,m:"bmAttributes"},
+            {v:0x40,m:"wMaxPacketSizeLSB"},
+            {v:0x00,m:"wMaxPacketSizeMSB"},
+            {v:0x00,m:"bInterval"},
 
-            // ----- Audio MS Descriptor - CS Interface - MS Header
-            0x07,                   // (  7) bLength
-            0x24,                   // ( 36) bDescriptorType
-            0x01,                   // (  1) bDescriptorSubtype
-            0x00,                   // (  0) bcdMSC_LSB
-            0x02,                   // (  2) bcdMSC_MSB
-            0x07,                   // (  7) wTotalLengthLSB ?????
-            0x00,                   // (  0) wTotalLengthMSB
-
-            // ----- EP Descriptor - Endpoint - MIDI OUT
-            0x07,                   // (  7) bLength
-            0x05,                   // (  5) bDescriptorType
-            (epIdx) + EPNUM_MIDI,             // (  1) bEndpointAddress
-            0x02,                   // (  2) bmAttributes
-            0x40,                   // (  0) wMaxPacketSizeLSB
-            0x00,                   // (  2) wMaxPacketSizeMSB
-            0x00,                   // (  0) bInterval
-            // ----- Audio MS Descriptor - CS Endpoint - MS General 2.0
-            0x04 + gtbInId.length,                   // (  6) bLength
-            0x25,                   // ( 37) bDescriptorType
-            0x02,                   // (  2) bDescriptorSubtype
-            gtbInId.length,         // (  1) bNumGrpTrmBlock
+            {m:"Audio MS Descriptor - CS Endpoint - MS General 2.0"},
+            {v:0x04 + gtbInId.length,m:"bLength"},
+            {v:0x25,m:"bDescriptorType = CS_ENDPOINT"},
+            {v:0x02,m:"bDescriptorSubtype = MS_GENERAL_2_0"},
+            {v:gtbInId.length,m:"bNumGrpTrmBlock"},
             ...gtbInId ,             // (  2) baAssoGrpTrmBlkID
 
 
 
-            // ----- EP Descriptor - Endpoint - MIDI IN
-            0x07,                   // (  7) bLength
-            0x05,                   // (  5) bDescriptorType
-            0x80+ (epIdx) +EPNUM_MIDI,        // (129) bEndpointAddress
-            0x02,                   // (  2) bmAttributes
-            0x40,                   // (  0) wMaxPacketSizeLSB
-            0x00,                   // (  2) wMaxPacketSizeMSB
-            0x00,                   // (  0) bInterval
-            // ----- Audio MS Descriptor - CS Endpoint - MS General 2.0
-            0x04 + gtbOutId.length,                   // (  6) bLength
-            0x25,                   // ( 37) bDescriptorType
-            0x02,                   // (  2) bDescriptorSubtype
-            gtbOutId.length,              // (  2) bNumGrpTrmBlock
+            {m:"EP Descriptor - Endpoint - MIDI IN"},
+            {v:0x07,m:"bLength"},
+            {v:0x05,m:"bDescriptorType = ENDPOINT"},
+            {v:0x80+ (epIdx) +EPNUM_MIDI,m:"bEndpointAddress (IN)"},
+            {v:0x02, m:"bmAttributes"},
+            {v:0x40,m:"wMaxPacketSizeLSB"},
+            {v:0x00,m:"wMaxPacketSizeMSB"},
+            {v:0x00,m:"bInterval"},
+
+            {m:"Audio MS Descriptor - CS Endpoint - MS General 2.0"},
+            {v:0x04 + gtbOutId.length,m:"bLength"},
+            {v:0x25,m:"bDescriptorType = CS_ENDPOINT"},
+            {v:0x02,m:"bDescriptorSubtype = MS_GENERAL_2_0"},
+            {v:gtbOutId.length,m:"bNumGrpTrmBlock"},
             ...gtbOutId                   // (  3) baAssoGrpTrmBlkID
-
-
         ]);
 
 
 
         //----------------
         ITF_NUM_MIDI+=2;
-    })
+    });
 
 
 
 
 
-    const TotalLength = U16_TO_U8S_LE(descriptor.length);
+    const TotalLength = U16_TO_U8S_LE(descriptor.filter(d=>d.v!==undefined).length,"Total Length");
 
     descriptor[2] = TotalLength[0];
     descriptor[3] = TotalLength[1];
@@ -432,14 +436,17 @@ function buildTinyUSBDescriptors(config){
     let out = [];
 
     out.push("uint8_t const desc_fs_configuration[] = {")
-    out.push(arrayToHex(descriptor,', '));
+
+    out.push(outStr(descriptor));
+    //out.push(arrayToHex(descriptor,', '));
     out.push("};")
 
     let gtbarray= [];
     config.endpoints.map((ep,idx)=>{
         gtbarray.push(`gtb${idx}`);
         out.push(`uint8_t const gtb${idx}[] = {`)
-        out.push(arrayToHex(ep.gtbDescriptor,', '));
+        out.push(outStr(ep.gtbDescriptor));
+        //out.push(arrayToHex(ep.gtbDescriptor,', '));
         out.push("};")
     });
     out.push(`uint8_t const gtbLengths[] = {${config.endpoints.map(e=>e.gtbDescriptor.length).join(',')}};`)
@@ -460,6 +467,23 @@ function buildTinyUSBDescriptors(config){
 
 }
 
+
+function outStr(arr){
+
+    return arr.map((d,idx)=>{
+        let str ="\t";
+        if(d.v!==undefined){
+            str += "0x"+("00" + d.v.toString(16)).slice (-2).toUpperCase() + (arr.length-1!==idx?",\t":"\t");
+        }else if(arr.length-1!==idx){
+            str += "\n  "
+        }
+        if(d.m){
+            str+="// "+d.m
+        }
+        return str + (arr.length-1!==idx?"\n":"");
+    }).join('')
+
+}
 
 
 

@@ -46,10 +46,10 @@ function buildGadget(config) {
         out.push(`echo ${ep.defaultGTBProtocol || 1} > functions/midi2.usb0/ep.${idx}/protocol`);
 
         //"0x"+("000000" + Number((m[0] << 16) + (m[1]<<8) + m[2]).toString(16)).slice (-6).toUpperCase();
-        out.push(`echo 0x${("0000" + Number((ep.familyId[0] << 8) + ep.familyId[1]).toString(16)).slice(-4).toUpperCase()} > functions/midi2.usb0/ep.${idx}/family`);
-        out.push(`echo 0x${("0000" + Number((ep.modelId[0] << 8) + ep.modelId[1]).toString(16)).slice(-4).toUpperCase()} > functions/midi2.usb0/ep.${idx}/model`);
-        out.push(`echo 0x${("000000" + Number((config.manufacturerId[0] << 16) + (config.manufacturerId[1] << 8) + config.manufacturerId[2]).toString(16)).slice(-6).toUpperCase()} > functions/midi2.usb0/ep.${idx}/manufacturer`);
-        out.push(`echo 0x${("00000000" + Number((config.version[0] << 24) + (config.version[1] << 16) + (config.version[2] << 8) + config.version[3]).toString(16)).slice(-8).toUpperCase()} > functions/midi2.usb0/ep.${idx}/sw_revision`);
+        out.push(`echo 0x${ep.familyId[0]} > functions/midi2.usb0/ep.${idx}/family`);
+        out.push(`echo 0x${ep.modelId} > functions/midi2.usb0/ep.${idx}/model`);
+        out.push(`echo ${config.manufacturerId} > functions/midi2.usb0/ep.${idx}/manufacturer`);
+        out.push(`echo 0x${config.version} > functions/midi2.usb0/ep.${idx}/sw_revision`);
 
         ep.blocks.map((gtb, gidx) => {
             if (idx || gidx) {

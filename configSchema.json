@@ -3,113 +3,113 @@
   "type": "object",
   "properties": {
     "idVendor": {
-      "type": "string"
+      "title": "USB ID Vendor",
+      "description": "Use hex e.g 0xCAFE",
+      "type": "string",
+      "pattern": "^0x[0-9ABCDEFabcdef]{4}$"
     },
     "idProduct": {
-      "type": "string"
+      "title": "USB ID Product",
+      "description": "Use hex e.g 0xCAFE",
+      "type": "string",
+      "pattern": "^0x[0-9ABCDEFabcdef]{4}$"
     },
     "manufacturer": {
+      "title": "Manufacturer",
       "type": "string",
       "maxLength": 254,
       "format": "UTF8"
     },
     "manufacturerId": {
-      "title": "Manufacturer Id",
-      "description": "This is the System Exclusive ID Number. It is an array of the 3 data byte values (as integers) in the same structure as defined in MIDI-CI Inquiry & Negotiation Messages.",
-      "type": "array",
-      "items": {
-        "type": "integer",
-        "maximum": 127,
-        "minimum": 0
-      },
-      "minItems": 3,
-      "maxItems": 3
+      "title": "Manufacturer Id (L)",
+      "description": "This is the System Exclusive ID Number. Please use the format as described by Linux Gadget docs.",
+      "type": "string",
+      "pattern": "^0x[0-9ABCDEFabcdef]{6}$"
     },
     "version": {
-      "title": "Version Id",
-      "description": "This is an array of the 4 data byte values (as integers) in the same structure as defined in MIDI-CI Inquiry & Negotiation Messages.",
-      "type": "array",
-      "items": {
-        "type": "integer",
-        "maximum": 127,
-        "minimum": 0
-      },
-      "minItems": 4,
-      "maxItems": 4
+      "title": "Software Revision Id (L)",
+      "description": "This is the Software Revision/Version Number. Please use the format as described by Linux Gadget docs.",
+      "type": "string",
+      "pattern": "^0x[0-9ABCDEFabcdef]{8}$"
     },
     "product": {
+      "title": "Product Name",
       "type": "string",
       "maxLength": 98,
       "format": "UTF8"
     },
     "serialNumber": {
+      "title": "Serial Number",
+      "description": "Serial Number generation should be replaced by a some unique id on the Device e.g. chip id",
       "type": "string",
       "maxLength":42
     },
 
     "power": {
+      "title": "Power (in mA)",
       "type": "integer",
       "maximum": 255
     },
 
     "CDC": {
+      "title": "Serial CDC",
+      "description": "Setting to true will enable a CDC interface",
       "type": "boolean"
     },
     "CDCName": {
+      "title": "CDC Name",
       "type": "string"
     },
 
     "processUmpManually": {
+      "title": "Process UMP Manually (L)",
+      "description": "Linux Gadget will attempt to process incoming UMP 1.1. request and respond regardless if there is an attached application to the ALSA Device. Setting this to true will stop this feature.",
       "type": "boolean"
     },
     "endpoints": {
+      "title": "Endpoints",
+      "description": "More than one Endpoint is not recommended at this time due to limited support.",
       "type": "array",
       "items":{
           "type": "object",
           "properties": {
             "name": {
+              "title": "Endpoint Name",
               "type": "string"
             },
             "productId": {
+              "title": "Product Instance Id(L)",
               "type": "string",
               "maxLength":42
             },
             "familyId": {
-              "title": "Family Id",
-              "description": "This is an array of the 2 data byte values (as integers) in the same structure as defined in MIDI-CI Inquiry & Negotiation Messages.",
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "maximum": 127,
-                "minimum": 0
-              },
-              "minItems": 2,
-              "maxItems": 2
+              "title": "Family Id (L)",
+              "description": "This is the Family Id. Please use the format as described by Linux Gadget docs.",
+              "type": "string",
+              "pattern": "^0x[0-9ABCDEFabcdef]{4}$"
             },
             "modelId": {
-              "title": "Model Id",
-              "description": "This is an array of the 2 data byte values (as integers) in the same structure as defined in MIDI-CI Inquiry & Negotiation Messages.",
-              "type": "array",
-              "items": {
-                "type": "integer",
-                "maximum": 127,
-                "minimum": 0
-              },
-              "minItems": 2,
-              "maxItems": 2
+              "title": "Model Id (L)",
+              "description": "This is the Model Id. Please use the format as described by Linux Gadget docs.",
+              "type": "string",
+              "pattern": "^0x[0-9ABCDEFabcdef]{4}$"
             },
             "MIDI1Itf": {
+              "title": "MIDI 1.0 Endpoints (T)",
               "type": "array",
               "items": {
                   "type": "object",
                   "properties": {
                     "in": {
+                      "title": "Input",
                       "type": "boolean"
                     },
                     "out": {
+                      "title": "Output",
                       "type": "boolean"
                     },
                     "name": {
+                      "title": "MIDI 1.0 Port Name",
                       "type": "string"
                     }
                   },
@@ -121,40 +121,64 @@
                 }
             },
             "defaultGTBProtocol": {
-              "type": "integer"
+              "title": "Default MIDI 2.0 Protocol",
+              "description": "Note this only accepts 0 - unknown, 1 - MIDI 1.0, 2 - MIDI 2.0",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2
             },
             "blocks": {
+              "title": "Blocks",
+              "description": "This is generally Group Blocks, however Linux Gadget can also treat these as static Function Blocks.",
               "type": "array",
               "items":
                 {
                   "type": "object",
                   "properties": {
                     "name": {
+                      "title": "Block Name",
                       "type": "string"
                     },
+                    "firstGroup": {
+                      "title": "First Group (1-16)",
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 16
+                    },
+                    "numOfGroups": {
+                      "title": "Number of Groups (1-16)",
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 16
+                    },
                     "in": {
+                      "title": "Input",
                       "type": "boolean"
                     },
                     "out": {
+                      "title": "Output",
                       "type": "boolean"
                     },
+
+                    "wMaxInputBandwidth": {
+                      "title": "Max Input Bandwidth (T)",
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    },
+                    "wMaxOutputBandwidth": {
+                      "title": "Max Output Bandwidth (T)",
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    },
                     "uihintIn": {
+                      "title": "UI Hint In (Function Block)(L)",
                       "type": "boolean"
                     },
                     "uihintOut": {
+                      "title": "UI Hint Out (Function Block)(L)",
                       "type": "boolean"
-                    },
-                    "firstGroup": {
-                      "type": "integer"
-                    },
-                    "numOfGroups": {
-                      "type": "integer"
-                    },
-                    "wMaxInputBandwidth": {
-                      "type": "integer"
-                    },
-                    "wMaxOutputBandwidth": {
-                      "type": "integer"
                     }
                   },
                   "required": [
@@ -164,9 +188,7 @@
                     "uihintIn",
                     "uihintOut",
                     "firstGroup",
-                    "numOfGroups",
-                    "wMaxInputBandwidth",
-                    "wMaxOutputBandwidth"
+                    "numOfGroups"
                   ]
                 }
 
@@ -193,6 +215,7 @@
     "product",
     "serialNumber",
     "power",
-    "endpoints"
+    "endpoints",
+    "CDC","processUmpManually"
   ]
 }

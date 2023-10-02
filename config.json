@@ -1,21 +1,21 @@
 {
   "CDC": false,
   "CDCName": "ACME CDC",
-  "idVendor": "0x1d6b",
+  "idVendor": "0xCAFE",
   "idProduct": "0x1d6b",
   "manufacturer": "ACME Enterprises",
-  "manufacturerId":[126,0,0],
-  "version":[0, 1,0,0],
+  "manufacturerId":"0x7E0000",
+  "version":"0x00010000",
   "product": "ACME Synth",
   "serialNumber": "abcd1234",
   "power":250,
   "processUmpManually": true,
   "endpoints":[
     {
-      "name":"ACMESynth",
-      "productId":"12345",
-      "familyId":[1,23],
-      "modelId":[45,67],
+      "name":"ACME Synth",
+      "productId":"abcd1234",
+      "familyId":"0xDEAD",
+      "modelId":"0xBEEF",
       "MIDI1Itf":[
         {
           "in":true, "out":true,
@@ -25,7 +25,7 @@
       "defaultGTBProtocol":2,
       "blocks":[
         {
-          "name": "Monosynth",
+          "name": "MonoSynth",
           "in"      : true,
           "out"      : true,
           "uihintIn": true,

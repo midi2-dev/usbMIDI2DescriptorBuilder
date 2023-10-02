@@ -61,9 +61,27 @@ function buildTinyUSBDescriptors(config){
         ITF_NUM_MIDI+=2
     }
 
-    addString(config.manufacturer);
-    addString(config.product);
-    addString(config.serialNumber);
+    let idVendor = parseInt(config.idVendor,16);
+    //idVendor = ((idVendor << 8) & 0xFF00) + ((idVendor >> 8) & 0xFF); //Swap bytes
+    let idProduct = parseInt(config.idProduct,16);
+    //idProduct = ((idProduct << 8) & 0xFF00) + ((idProduct >> 8) & 0xFF); //Swap bytes
+    let devQualifier = [
+        {v:18, m: "bLength"},
+        {v:0x06, m: "bDescriptorType = TUSB_DESC_DEVICE_QUALIFIER"},
+        ...U16_TO_U8S_LE(0x02,'bcdUSB'),
+        {v:0xEF, m: "bDeviceClass = TUSB_CLASS_MISC"},
+        {v:0x02, m: "bDeviceSubClass = TUSB_CLASS_MISC"},
+        {v:0x01, m: "bDeviceProtocol = MISC_PROTOCOL_IAD"},
+        {v:0x40, m: "bMaxPacketSize0"},
+        ...U16_TO_U8S_LE(idVendor,'idVendor'),
+        ...U16_TO_U8S_LE(idProduct,'idProduct'),
+        ...U16_TO_U8S_LE(0x4000,'bcdDevice'),
+        {v:addString(config.manufacturer), m: "iManufacturer"},
+        {v:addString(config.product), m: "iProduct"},
+        {v:addString(config.serialNumber), m: "iSerialNumber"},
+        {v:0x01, m: "bNumConfigurations"},
+    ];
+
 
 
     let descriptor = [
@@ -79,9 +97,6 @@ function buildTinyUSBDescriptors(config){
     ];
 
     if(config.CDC){
-        //TUD_CDC_DESCRIPTOR(ITF_NUM_CDC, 4, EPNUM_CDC_NOTIF, 8, EPNUM_CDC_OUT, EPNUM_CDC_IN, 64),
-        //TUD_CDC_DESCRIPTOR(_itfnum, _stridx, _ep_notif, _ep_notif_size, _epout, _epin, _epsize)
-
         descriptor.push(...[
             {m:"---------------------------"},
             {m:"Interface Associate"},
@@ -236,7 +251,7 @@ function buildTinyUSBDescriptors(config){
             {v:0x01,m:"bInCollection"},
             {v:ITF_NUM_MIDI+1,m:"baInterfaceNr(1)"},
 
-            {m:"Interface - MIDIStreaming"},
+            {m:"Interface - MIDIStreaming - Alternate Setting #0"},
             {v:0x09,m:"bLength"},
             {v:0x04,m:"bDescriptorType = INTERFACE"},
             {v:ITF_NUM_MIDI+1,m:"bInterfaceNumber"},
@@ -435,11 +450,15 @@ function buildTinyUSBDescriptors(config){
 
     let out = [];
 
-    out.push("uint8_t const desc_fs_configuration[] = {")
+    out.push("uint8_t const desc_device[] = {")
+    out.push(outStr(devQualifier));
+    //out.push(arrayToHex(descriptor,', '));
+    out.push("};") ;
 
+    out.push("uint8_t const desc_fs_configuration[] = {")
     out.push(outStr(descriptor));
     //out.push(arrayToHex(descriptor,', '));
-    out.push("};")
+    out.push("};");
 
     let gtbarray= [];
     config.endpoints.map((ep,idx)=>{

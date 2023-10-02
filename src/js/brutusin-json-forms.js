@@ -718,7 +718,7 @@ if (typeof brutusin === "undefined") {
                 let sp = getSchema(s['$id'].replace(/\[#\]$/,''));
                 let spValue = getInitialValue(id.replace(/\[[0-9]+\]$/,''))
                 if(sp.minItems === undefined ||
-                    sp.minItems > (spValue?.length ||0)
+                    sp.minItems < (spValue?.length ||0)
                 ) {
                     appendChild(td2, removeButton, s);
                 }
@@ -785,7 +785,7 @@ if (typeof brutusin === "undefined") {
                 addButton.title = itemS.description;
             }
 
-            appendChild(addButton, document.createTextNode(BrutusinForms.messages["addItem"]), s);
+            appendChild(addButton, document.createTextNode(s.title? `Add ${s.title}`:BrutusinForms.messages["addItem"]), s);
 
 
             appendChild(div, table, s);
@@ -799,6 +799,12 @@ if (typeof brutusin === "undefined") {
                     addItem(current, table, id + "[" + i + "]", value[i], s.readOnly);
                 }
             }
+            if(s.minItems){
+                for (var i = (value||[]).length; i < s.minItems; i++) {
+                    addItem(current, table, id + "[" + i + "]", null, s.readOnly);
+                }
+            }
+
             appendChild(container, div, s);
         };
         // end of array render

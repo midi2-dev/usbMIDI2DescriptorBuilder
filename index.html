@@ -141,7 +141,7 @@
                     <div class="card-header">
                         <h2 class="mb-0">
                             <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseInput" aria-expanded="true" aria-controls="collapseInput">
-                            Input
+                            JSON Configuration
                             </button>
                         </h2>
                     </div>
@@ -167,11 +167,15 @@
                     </div>
                     <div id="collapseForm" class="collapse" data-parent="#accordion">
                         <div class="card-body">
-                            <div class="alert alert-secondary" role="alert"><strong id="example-title"></strong><div id="example-desc"></div></div>
+                            <div class="alert alert-secondary" role="alert">
+                                <div id="example-desc">
+                                    (T) - TinyUSB Only<br/>
+                                    (L) - Linux Gadget Only<br/>
+                                </div>
+                            </div>
                             <div id='container' style="padding-left:12px;padding-right:12px;padding-bottom: 12px;"></div>
                             <div class="panel-footer">
                                 <button class="btn btn-primary" onclick="generateOutput()">Create Output</button>&nbsp;
-
                             </div>
                         </div>
                     </div>
@@ -181,7 +185,7 @@
                     <div class="card-header">
                         <h2 class="mb-0">
                             <button id="protoOutLink" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOutputProtoZOA" aria-expanded="true" aria-controls="collapseInput">
-                                Output Tiny USB
+                                Output: Tiny USB
                             </button>
                         </h2>
                     </div>
@@ -196,7 +200,7 @@
                     <div class="card-header">
                         <h2 class="mb-0">
                             <button id="gadgeOutLink" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOutputGadget" aria-expanded="true" aria-controls="collapseInput">
-                                Output Linux Gadget Script
+                                Output: Linux Gadget Script
                             </button>
                         </h2>
                     </div>

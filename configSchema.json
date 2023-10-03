@@ -67,8 +67,8 @@
       "type": "boolean"
     },
     "endpoints": {
-      "title": "Endpoints",
-      "description": "More than one Endpoint is not recommended at this time due to limited support.",
+      "title": "UMP Endpoints",
+      "description": "More than one UMP Endpoint is not recommended at this time due to limited support.",
       "type": "array",
       "items":{
           "type": "object",

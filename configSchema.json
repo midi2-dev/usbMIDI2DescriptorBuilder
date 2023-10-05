@@ -125,11 +125,12 @@
               "description": "Note this only accepts 0 - unknown, 1 - MIDI 1.0, 2 - MIDI 2.0",
               "type": "integer",
               "minimum": 0,
-              "maximum": 2
+              "maximum": 2,
+              "default": 2
             },
             "blocks": {
               "title": "Blocks",
-              "description": "This is generally Group Blocks, however Linux Gadget can also treat these as static Function Blocks.",
+              "description": "This is generally Group Blocks, however Linux Gadget can also treat these as static Function Blocks. If Blocks are not created then no Alternate Setting 2 is created for USB.",
               "type": "array",
               "items":
                 {
@@ -196,9 +197,6 @@
           },
           "required": [
             "name",
-            "productId",
-            "familyId",
-            "modelId",
             "MIDI1Itf",
             "defaultGTBProtocol",
             "blocks"

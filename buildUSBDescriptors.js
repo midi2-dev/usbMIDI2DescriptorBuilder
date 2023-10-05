@@ -65,9 +65,9 @@ function buildTinyUSBDescriptors(config){
     //idVendor = ((idVendor << 8) & 0xFF00) + ((idVendor >> 8) & 0xFF); //Swap bytes
     let idProduct = parseInt(config.idProduct,16);
     //idProduct = ((idProduct << 8) & 0xFF00) + ((idProduct >> 8) & 0xFF); //Swap bytes
-    let devQualifier = [
+    let devDevice = [
         {v:18, m: "bLength"},
-        {v:0x06, m: "bDescriptorType = TUSB_DESC_DEVICE_QUALIFIER"},
+        {v:0x01, m: "bDescriptorType = TUSB_DESC_DEVICE"},
         ...U16_TO_U8S_LE(0x02,'bcdUSB'),
         {v:0xEF, m: "bDeviceClass = TUSB_CLASS_MISC"},
         {v:0x02, m: "bDeviceSubClass = TUSB_CLASS_MISC"},
@@ -80,6 +80,18 @@ function buildTinyUSBDescriptors(config){
         {v:addString(config.product), m: "iProduct"},
         {v:addString(config.serialNumber), m: "iSerialNumber"},
         {v:0x01, m: "bNumConfigurations"},
+    ];
+
+    let devQualifier = [
+        {v:10, m: "bLength"},
+        {v:0x06, m: "bDescriptorType = TUSB_DESC_DEVICE_QUALIFIER"},
+        ...U16_TO_U8S_LE(0x02,'bcdUSB'),
+        {v:0xEF, m: "bDeviceClass = TUSB_CLASS_MISC"},
+        {v:0x02, m: "bDeviceSubClass = TUSB_CLASS_MISC"},
+        {v:0x01, m: "bDeviceProtocol = MISC_PROTOCOL_IAD"},
+        {v:0x40, m: "bMaxPacketSize0"},
+        {v:0x01, m: "bNumConfigurations"},
+        {v:0x00, m: "bReserved"},
     ];
 
 
@@ -178,6 +190,8 @@ function buildTinyUSBDescriptors(config){
     config.endpoints.map((ep, epIdx)=>{
         let gtbInId=[];
         let gtbOutId=[];
+
+        ep.blocks = ep.blocks || [];
 
         ep.gtbDescriptor = [
             {v:5,m:"HeaderLength"},
@@ -374,69 +388,67 @@ function buildTinyUSBDescriptors(config){
 
 
 //MIDI 2.0 Settings below
+        if(ep.blocks.length) {
+            ep.interfaceId = ITF_NUM_MIDI + 1;
 
-        ep.interfaceId = ITF_NUM_MIDI+1;
+            descriptor.push(...[
+                {m: "Interface - MIDIStreaming - Alternate Setting #1"},
+                {v: 0x09, m: "bLength"},
+                {v: 0x04, m: "bDescriptorType = INTERFACE"},
+                {v: ITF_NUM_MIDI + 1, m: "bInterfaceNumber"},
+                {v: 0x01, m: "bAlternateSetting"},
+                {v: 0x02, m: "bNumEndpoints"},
+                {v: 0x01, m: "bInterfaceClass = AUDIO"},
+                {v: 0x03, m: "bInterfaceSubClass = MIDISTREAMING"},
+                {v: 0x00, m: " bInterfaceProtocol"},
+                {v: addString(ep.name), m: "iInterface"}, //Unused??
 
-        descriptor.push(...[
-            {m:"Interface - MIDIStreaming - Alternate Setting #1"},
-            {v:0x09,m:"bLength"},
-            {v:0x04,m:"bDescriptorType = INTERFACE"},
-            {v:ITF_NUM_MIDI+1,m:"bInterfaceNumber"},
-            {v:0x01,m:"bAlternateSetting"},
-            {v:0x02,m:"bNumEndpoints"},
-            {v:0x01,m:"bInterfaceClass = AUDIO"},
-            {v:0x03,m:"bInterfaceSubClass = MIDISTREAMING"},
-            {v:0x00,m:" bInterfaceProtocol"},
-            {v:addString(ep.name),m:"iInterface"}, //Unused??
+                {m: "Audio MS Descriptor - CS Interface - MS Header"},
+                {v: 0x07, m: "bLength"},
+                {v: 0x24, m: "bDescriptorType = CS_INTERFACE"},
+                {v: 0x01, m: "bDescriptorSubtype = MS_HEADER"},
+                {v: 0x00, m: "bcdMSC_LSB"},
+                {v: 0x02, m: "bcdMSC_MSB"},
+                {v: 0x07, m: "wTotalLengthLSB"},
+                {v: 0x00, m: "wTotalLengthMSB"},
 
-            {m:"Audio MS Descriptor - CS Interface - MS Header"},
-            {v:0x07,m:"bLength"},
-            {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
-            {v:0x01,m:"bDescriptorSubtype = MS_HEADER"},
-            {v:0x00,m:"bcdMSC_LSB"},
-            {v:0x02,m:"bcdMSC_MSB"},
-            {v:0x07,m:"wTotalLengthLSB"},
-            {v:0x00,m:"wTotalLengthMSB"},
+                {m: "EP Descriptor - Endpoint - MIDI OUT"},
+                {v: 0x07, m: "bLength"},
+                {v: 0x05, m: "bDescriptorType = ENDPOINT"},
+                {v: (epIdx) + EPNUM_MIDI, m: "bEndpointAddress (OUT)"},
+                {v: 0x02, m: "bmAttributes"},
+                {v: 0x40, m: "wMaxPacketSizeLSB"},
+                {v: 0x00, m: "wMaxPacketSizeMSB"},
+                {v: 0x00, m: "bInterval"},
 
-            {m:"EP Descriptor - Endpoint - MIDI OUT"},
-            {v:0x07,m:"bLength"},
-            {v:0x05,m:"bDescriptorType = ENDPOINT"},
-            {v:(epIdx) + EPNUM_MIDI,m:"bEndpointAddress (OUT)"},
-            {v:0x02,m:"bmAttributes"},
-            {v:0x40,m:"wMaxPacketSizeLSB"},
-            {v:0x00,m:"wMaxPacketSizeMSB"},
-            {v:0x00,m:"bInterval"},
-
-            {m:"Audio MS Descriptor - CS Endpoint - MS General 2.0"},
-            {v:0x04 + gtbInId.length,m:"bLength"},
-            {v:0x25,m:"bDescriptorType = CS_ENDPOINT"},
-            {v:0x02,m:"bDescriptorSubtype = MS_GENERAL_2_0"},
-            {v:gtbInId.length,m:"bNumGrpTrmBlock"},
-            ...gtbInId ,             // (  2) baAssoGrpTrmBlkID
-
-
-
-            {m:"EP Descriptor - Endpoint - MIDI IN"},
-            {v:0x07,m:"bLength"},
-            {v:0x05,m:"bDescriptorType = ENDPOINT"},
-            {v:0x80+ (epIdx) +EPNUM_MIDI,m:"bEndpointAddress (IN)"},
-            {v:0x02, m:"bmAttributes"},
-            {v:0x40,m:"wMaxPacketSizeLSB"},
-            {v:0x00,m:"wMaxPacketSizeMSB"},
-            {v:0x00,m:"bInterval"},
-
-            {m:"Audio MS Descriptor - CS Endpoint - MS General 2.0"},
-            {v:0x04 + gtbOutId.length,m:"bLength"},
-            {v:0x25,m:"bDescriptorType = CS_ENDPOINT"},
-            {v:0x02,m:"bDescriptorSubtype = MS_GENERAL_2_0"},
-            {v:gtbOutId.length,m:"bNumGrpTrmBlock"},
-            ...gtbOutId                   // (  3) baAssoGrpTrmBlkID
-        ]);
+                {m: "Audio MS Descriptor - CS Endpoint - MS General 2.0"},
+                {v: 0x04 + gtbInId.length, m: "bLength"},
+                {v: 0x25, m: "bDescriptorType = CS_ENDPOINT"},
+                {v: 0x02, m: "bDescriptorSubtype = MS_GENERAL_2_0"},
+                {v: gtbInId.length, m: "bNumGrpTrmBlock"},
+                ...gtbInId,             // (  2) baAssoGrpTrmBlkID
 
 
+                {m: "EP Descriptor - Endpoint - MIDI IN"},
+                {v: 0x07, m: "bLength"},
+                {v: 0x05, m: "bDescriptorType = ENDPOINT"},
+                {v: 0x80 + (epIdx) + EPNUM_MIDI, m: "bEndpointAddress (IN)"},
+                {v: 0x02, m: "bmAttributes"},
+                {v: 0x40, m: "wMaxPacketSizeLSB"},
+                {v: 0x00, m: "wMaxPacketSizeMSB"},
+                {v: 0x00, m: "bInterval"},
 
-        //----------------
-        ITF_NUM_MIDI+=2;
+                {m: "Audio MS Descriptor - CS Endpoint - MS General 2.0"},
+                {v: 0x04 + gtbOutId.length, m: "bLength"},
+                {v: 0x25, m: "bDescriptorType = CS_ENDPOINT"},
+                {v: 0x02, m: "bDescriptorSubtype = MS_GENERAL_2_0"},
+                {v: gtbOutId.length, m: "bNumGrpTrmBlock"},
+                ...gtbOutId                   // (  3) baAssoGrpTrmBlkID
+            ]);
+
+        }
+
+        ITF_NUM_MIDI += 2;
     });
 
 
@@ -451,21 +463,22 @@ function buildTinyUSBDescriptors(config){
     let out = [];
 
     out.push("uint8_t const desc_device[] = {")
+    out.push(outStr(devDevice));
+    out.push("};\n") ;
+
+    out.push("uint8_t const desc_device_qualifier[] = {")
     out.push(outStr(devQualifier));
-    //out.push(arrayToHex(descriptor,', '));
-    out.push("};") ;
+    out.push("};\n") ;
 
     out.push("uint8_t const desc_fs_configuration[] = {")
     out.push(outStr(descriptor));
-    //out.push(arrayToHex(descriptor,', '));
     out.push("};");
 
     let gtbarray= [];
     config.endpoints.map((ep,idx)=>{
         gtbarray.push(`gtb${idx}`);
         out.push(`uint8_t const gtb${idx}[] = {`)
-        out.push(outStr(ep.gtbDescriptor));
-        //out.push(arrayToHex(ep.gtbDescriptor,', '));
+        if(ep.blocks?.length)out.push(outStr(ep.gtbDescriptor));
         out.push("};")
     });
     out.push(`uint8_t const gtbLengths[] = {${config.endpoints.map(e=>e.gtbDescriptor.length).join(',')}};`)

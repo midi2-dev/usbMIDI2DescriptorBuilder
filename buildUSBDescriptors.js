@@ -451,8 +451,7 @@ function buildTinyUSBDescriptors(config){
         ITF_NUM_MIDI += 2;
     });
 
-
-
+    config.prefix = config.prefix || "";
 
 
     const TotalLength = U16_TO_U8S_LE(descriptor.filter(d=>d.v!==undefined).length,"Total Length");
@@ -462,41 +461,41 @@ function buildTinyUSBDescriptors(config){
 
     let out = [];
 
-    out.push("uint8_t const desc_device[] = {")
+    out.push(`uint8_t const ${config.prefix}desc_device[] = {`)
     out.push(outStr(devDevice));
     out.push("};\n") ;
 
-    out.push("uint8_t const desc_device_qualifier[] = {")
+    out.push(`uint8_t const ${config.prefix}desc_device_qualifier[] = {`)
     out.push(outStr(devQualifier));
     out.push("};\n") ;
 
-    out.push("uint8_t const desc_fs_configuration[] = {")
+    out.push(`uint8_t const ${config.prefix}desc_fs_configuration[] = {`)
     out.push(outStr(descriptor));
     out.push("};");
 
     let gtbarray= [];
     config.endpoints.map((ep,idx)=>{
         gtbarray.push(`gtb${idx}`);
-        out.push(`uint8_t const gtb${idx}[] = {`)
+        out.push(`uint8_t const ${config.prefix}gtb${idx}[] = {`)
         if(ep.blocks?.length)out.push(outStr(ep.gtbDescriptor));
         out.push("};")
     });
-    out.push(`uint8_t const gtbLengths[] = {${config.endpoints.map(e=>e.gtbDescriptor.length).join(',')}};`)
+    out.push(`uint8_t const ${config.prefix}gtbLengths[] = {${config.endpoints.map(e=>e.gtbDescriptor.length).join(',')}};`)
 
 
-    out.push(`uint8_t const epInterface[] = {${config.endpoints.map(e=>e.interfaceId).join(',')}};`)
+    out.push(`uint8_t const ${config.prefix}epInterface[] = {${config.endpoints.map(e=>e.interfaceId).join(',')}};`)
 
 
-    out.push(`uint8_t const *group_descr[] = {${gtbarray.join(',')}};`)
+    out.push(`uint8_t const *${config.prefix}group_descr[] = {${gtbarray.join(',')}};`)
 
-    out.push("char const* string_desc_arr [] = {")
+    out.push(`char const* ${config.prefix}string_desc_arr [] = {`)
     stringIdx.map((name,idx)=>{
         out.push(`\t"${name}"${idx===stringIdx.length?'':','} //${idx}`)
     });
     //out.push(`"${stringIdx.join('", "')}"`)
     out.push("};")
 
-    out.push(`uint8_t const string_desc_arr_length = ${stringIdx.length};`)
+    out.push(`uint8_t const ${config.prefix}string_desc_arr_length = ${stringIdx.length};`)
 
     return out.join("\n");
 

@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "type": "object",
   "properties": {
+
     "idVendor": {
       "title": "USB ID Vendor",
       "description": "Use hex e.g 0xCAFE",
@@ -202,6 +203,12 @@
             "blocks"
           ]
         }
+    },
+    "prefix": {
+      "title": "Parameter Prefix (T)",
+      "description": "If provided this will prefix parameters with this value",
+      "type": "string",
+      "pattern": "^[A-Za-z_][a-zA-Z0-9_]*$"
     }
   },
   "required": [

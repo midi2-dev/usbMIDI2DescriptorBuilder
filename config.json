@@ -1,4 +1,5 @@
 {
+  "prefix": "",
   "CDC": false,
   "CDCName": "ACME CDC",
   "idVendor": "0xCAFE",

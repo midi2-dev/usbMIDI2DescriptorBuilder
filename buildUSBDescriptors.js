@@ -490,10 +490,13 @@ function buildTinyUSBDescriptors(config){
     out.push(`uint8_t const *group_descr[] = {${gtbarray.join(',')}};`)
 
     out.push("char const* string_desc_arr [] = {")
-    out.push(`"${stringIdx.join('", "')}"`)
+    stringIdx.map((name,idx)=>{
+        out.push(`\t"${name}"${idx===stringIdx.length?'':','} //${idx}`)
+    });
+    //out.push(`"${stringIdx.join('", "')}"`)
     out.push("};")
 
-    out.push(`uint8_t const string_desc_arr_length = ${stringIdx.length-1};`)
+    out.push(`uint8_t const string_desc_arr_length = ${stringIdx.length};`)
 
     return out.join("\n");
 

@@ -305,7 +305,7 @@ function buildTinyUSBDescriptors(config){
                     {v:0x09,m:"bLength"},
                     {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
                     {v:0x03,m:"bDescriptorSubtype = MIDI_OUT_JACK"},
-                    {v:0x02,m:"bJackType = EMBEDDED."},
+                    {v:0x02,m:"bJackType = EXTERNAL."},
                     {v:(idx*4) + 16 + 1 + (epIdx*16),m:"bJackID"},
                     {v:0x01,m:"bNrInputPins"},
                     {v:(idx*4) + 1 + (epIdx*16),m:"baSourceID"},
@@ -315,7 +315,7 @@ function buildTinyUSBDescriptors(config){
             }
 
             if(m1.out){
-                midiOutJackId.push({v:(idx*4) + 16  + 2 + (epIdx*16),m:"Jach Id"});
+                midiOutJackId.push({v:(idx*4) + 16  + 2 + (epIdx*16),m:"Jack Id"});
                 descriptor.push(...[
                     {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Main In)"},
                     {v:0x06,m:"bLength"},
@@ -325,7 +325,7 @@ function buildTinyUSBDescriptors(config){
                     {v:(idx*4) + 2  + (epIdx*16),m:"bJackID"},
                     {v:addString(m1.name),m:"iJack"},
 
-                    {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EMB) (Main Out)"},
+                    {m:"Audio MS Descriptor - CS Interface - MIDI OUT Jack (EMB) (Main Out)"},
                     {v:0x09,m:"bLength"},
                     {v:0x24,m:"bDescriptorType"},
                     {v:0x03,m:"bDescriptorSubtype"},

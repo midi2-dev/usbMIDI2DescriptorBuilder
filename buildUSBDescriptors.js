@@ -76,9 +76,9 @@ function buildTinyUSBDescriptors(config){
         ...U16_TO_U8S_LE(idVendor,'idVendor'),
         ...U16_TO_U8S_LE(idProduct,'idProduct'),
         ...U16_TO_U8S_LE(0x4000,'bcdDevice'),
-        {v:addString(config.manufacturer), m: "iManufacturer"},
-        {v:addString(config.product), m: "iProduct"},
-        {v:addString(config.serialNumber), m: "iSerialNumber"},
+        {v:addString(config.manufacturer), m: `iManufacturer  "${config.manufacturer}"`},
+        {v:addString(config.product), m: `iProduct  "${config.product}"`},
+        {v:addString(config.serialNumber), m: `iSerialNumber - "${config.serialNumber}"`},
         {v:0x01, m: "bNumConfigurations"},
     ];
 
@@ -129,7 +129,7 @@ function buildTinyUSBDescriptors(config){
             {v:TUSB_CLASS_CDC,m:"TUSB_CLASS_CDC"},
             {v:CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,m:"CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL"},
             {v:CDC_COMM_PROTOCOL_NONE,m:"CDC_COMM_PROTOCOL_NONE"},
-            {v:addString(config.CDCName),m:"String Index"},
+            {v:addString(config.CDCName),m:`String Index - "${config.CDCName}"`},
             {m:"CDC Header"},
             {v:5},
             {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
@@ -190,6 +190,8 @@ function buildTinyUSBDescriptors(config){
     config.endpoints.map((ep, epIdx)=>{
         let gtbInId=[];
         let gtbOutId=[];
+        let EndPointIn = 0;
+        let EndPointOut = 0;
 
         ep.blocks = ep.blocks || [];
 
@@ -206,6 +208,7 @@ function buildTinyUSBDescriptors(config){
             //gtbDescriptor
 
             let protocol = gtb.protocol || ep.defaultGTBProtocol || 0;
+            EndPointIn = 1;EndPointOut=1;
             ep.gtbDescriptor.push(
                 {v:13,m:"bLength"},
                 {v:MIDI_CS_INTERFACE_GR_TRM_BLOCK,m:"bDescriptorType = CS_GR_TRM_BLOCK"},
@@ -214,7 +217,7 @@ function buildTinyUSBDescriptors(config){
                 {v: gtb.in && gtb.out? 0x00: gtb.out?0x02: 0x01,m:"bGrpTrmBlkType = "+gtb.in && gtb.out? "birectional": gtb.out?"out": "in"},
                 {v:gtb.firstGroup -1,m:"First Group"},
                 {v:gtb.numOfGroups,m:"nNumGroupTrm"},
-                {v:addString(gtb.name),m:"iBlockItem"},
+                {v:addString(gtb.name),m:`iBlockItem - "${gtb.name}"`},
                 {v:protocol===2?0x11:protocol===1?0x02:0,m:"bMIDIProtocol"},
                 ...U16_TO_U8S_LE(gtb.wMaxInputBandwidth || 0,"wMaxInputBandwidth"),
                 ...U16_TO_U8S_LE(gtb.wMaxOutputBandwidth || 0,"wMaxOutputBandwidth")
@@ -230,6 +233,16 @@ function buildTinyUSBDescriptors(config){
             +4 // ----- Audio MS Descriptor - CS Endpoint - EP General
             +9 // ----- EP Descriptor - Endpoint - MIDI IN
             +4; // ----- Audio MS Descriptor - CS Endpoint - EP General
+
+        ep.MIDI1Itf.map((m1,idx)=> {
+            if (m1.in) {
+                EndPointIn = 1;
+            }
+            if (m1.out) {
+                EndPointOut = 1;
+            }
+        });
+
 
         descriptor.push(...[
             {m:"---------------------------"},
@@ -250,7 +263,7 @@ function buildTinyUSBDescriptors(config){
             {v:0x00,m:"bAlternateSetting"},
             {v:0x00,m:"bNumEndpoints"},
             {v:0x01,m:"bInterfaceClass = AUDIO"},
-            {v:0x01,m:"bInterfaceSubClass = AUDIO_CONTRO"},
+            {v:0x01,m:"bInterfaceSubClass = AUDIO_CONTROL"},
             {v:0x00,m:"bInterfaceProtocol"},
             {v:0x00,m:"iInterface"},
 
@@ -270,11 +283,11 @@ function buildTinyUSBDescriptors(config){
             {v:0x04,m:"bDescriptorType = INTERFACE"},
             {v:ITF_NUM_MIDI+1,m:"bInterfaceNumber"},
             {v:0x00,m:"bAlternateSetting"},
-            {v:0x02,m:"bNumEndpoints"},
+            {v:EndPointIn+EndPointOut,m:"bNumEndpoints"},
             {v:0x01,m:"bInterfaceClass = AUDIO"},
             {v:0x03,m:"bInterfaceSubClass = MIDISTREAMING"},
             {v:0x00,m:"bInterfaceProtocol"},
-            {v:addString(ep.name),m:"iInterface"}, //Unused according to docs? but some Hosts use it?
+            {v:addString(ep.name), m: `iInterface - "${ep.name}"`}, //Unused according to docs? but some Hosts use it?
 
             {m:"Audio MS Descriptor - CS Interface - MS Header"},
             {v:0x07,m:"bLength"},
@@ -283,39 +296,37 @@ function buildTinyUSBDescriptors(config){
             {v:0x00,m:"bcdMSCLSB"},
             {v:0x01,m:"bcdMSCMSB"},
             ...U16_TO_U8S_LE(m1TotalLen,"wTotalLength")
-            // 0x5D,                   // ( 93) wTotalLengthLSB ????? Total size of class-specific descriptors.
-            // 0x00,                   // (  0) wTotalLengthMSB
         ]);
 
         let midiInJackId=[];
         let midiOutJackId=[];
         ep.MIDI1Itf.map((m1,idx)=>{
             if(m1.in){
-                midiInJackId.push({v:(idx*4) + 1 + (epIdx*16),m:"jack Id"});
+                midiInJackId.push({v:(idx*4) + 1 + (epIdx*16),m:`Jack Id - "${m1.name}"`});
                 descriptor.push(...[
-                    {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Embedded)"},
+                    {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EMB) (Main In)"},
                     {v:0x06,m:"bLength"},
                     {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
                     {v:0x02,m:"bDescriptorSubtype = MIDI_IN_JACK"},
-                    {v:0x01,m:"bJackType = EMBEDDED."},
+                    {v:0x01,m:"bJackType = EMBEDDED"},
                     {v: (idx*4) + 1 + (epIdx*16),m:"bJackID"},
-                    {v:addString(m1.name),m:"iJack"},
+                    {v:addString(m1.name),m:`iJack - "${m1.name}"`},
 
                     {m:"Audio MS Descriptor - CS Interface - MIDI OUT Jack (EXT) (Main Out)"},
                     {v:0x09,m:"bLength"},
                     {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
                     {v:0x03,m:"bDescriptorSubtype = MIDI_OUT_JACK"},
-                    {v:0x02,m:"bJackType = EXTERNAL."},
+                    {v:0x02,m:"bJackType = EXTERNAL"},
                     {v:(idx*4) + 16 + 1 + (epIdx*16),m:"bJackID"},
                     {v:0x01,m:"bNrInputPins"},
                     {v:(idx*4) + 1 + (epIdx*16),m:"baSourceID"},
                     {v:0x01,m:"baSourcePin"},
-                    {v:addString(m1.name),m:"iJack"},
+                    {v:addString(m1.name),m:`iJack - "${m1.name}"`},
                 ]);
             }
 
             if(m1.out){
-                midiOutJackId.push({v:(idx*4) + 16  + 2 + (epIdx*16),m:"Jack Id"});
+                midiOutJackId.push({v:(idx*4) + 16  + 2 + (epIdx*16),m:`Jack Id - "${m1.name}"`});
                 descriptor.push(...[
                     {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Main In)"},
                     {v:0x06,m:"bLength"},
@@ -323,7 +334,7 @@ function buildTinyUSBDescriptors(config){
                     {v:0x02,m:"bDescriptorSubtype = MIDI_IN_JACK"},
                     {v:0x02,m:"bJackType = EXTERNAL"},
                     {v:(idx*4) + 2  + (epIdx*16),m:"bJackID"},
-                    {v:addString(m1.name),m:"iJack"},
+                    {v:addString(m1.name),m:`iJack - "${m1.name}"`},
 
                     {m:"Audio MS Descriptor - CS Interface - MIDI OUT Jack (EMB) (Main Out)"},
                     {v:0x09,m:"bLength"},
@@ -333,8 +344,8 @@ function buildTinyUSBDescriptors(config){
                     {v:(idx*4) + 16 +2 + (epIdx*16),m:"bJackID"},
                     {v:0x01,m:"Number of Input Pins of this Jack"},
                     {v:(idx*4) + 2  + (epIdx*16),m:"baSourceID"},
-                    {v:0x01,m:"baSourcePin"},
-                    {v:addString(m1.name),m:"iJack"},
+                    {v:1/*midiOutJackId.length*/,m:"baSourcePin"},
+                    {v:addString(m1.name),m:`iJack - "${m1.name}"`},
                 ]);
             }
 
@@ -401,7 +412,7 @@ function buildTinyUSBDescriptors(config){
                 {v: 0x01, m: "bInterfaceClass = AUDIO"},
                 {v: 0x03, m: "bInterfaceSubClass = MIDISTREAMING"},
                 {v: 0x00, m: " bInterfaceProtocol"},
-                {v: addString(ep.name), m: "iInterface"}, //Unused??
+                {v: addString(ep.name), m: `iInterface - "${ep.name}"`}, //Unused??
 
                 {m: "Audio MS Descriptor - CS Interface - MS Header"},
                 {v: 0x07, m: "bLength"},
@@ -475,18 +486,18 @@ function buildTinyUSBDescriptors(config){
 
     let gtbarray= [];
     config.endpoints.map((ep,idx)=>{
+        if(ep.gtbDescriptor.length <= 5)return;
         gtbarray.push(`gtb${idx}`);
         out.push(`uint8_t const ${config.prefix}gtb${idx}[] = {`)
         if(ep.blocks?.length)out.push(outStr(ep.gtbDescriptor));
         out.push("};")
     });
-    out.push(`uint8_t const ${config.prefix}gtbLengths[] = {${config.endpoints.map(e=>e.gtbDescriptor.length).join(',')}};`)
 
-
-    out.push(`uint8_t const ${config.prefix}epInterface[] = {${config.endpoints.map(e=>e.interfaceId).join(',')}};`)
-
-
-    out.push(`uint8_t const *${config.prefix}group_descr[] = {${gtbarray.join(',')}};`)
+    if(gtbarray.length) {
+        out.push(`uint8_t const ${config.prefix}gtbLengths[] = {${config.endpoints.map(e => e.gtbDescriptor.length).join(',')}};`)
+        out.push(`uint8_t const ${config.prefix}epInterface[] = {${config.endpoints.map(e=>e.interfaceId).join(',')}};`)
+        out.push(`uint8_t const *${config.prefix}group_descr[] = {${gtbarray.join(',')}};`);
+    }
 
     out.push(`char const* ${config.prefix}string_desc_arr [] = {`)
     stringIdx.map((name,idx)=>{

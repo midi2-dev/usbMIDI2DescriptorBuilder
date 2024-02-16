@@ -19,7 +19,7 @@
       "modelId":"0xBEEF",
       "MIDI1Itf":[
         {
-          "in":true, "out":true,
+          "in":true, "out":true,"externalCreate": true,
           "name": "MonoSynth"
         }
       ],

@@ -167,6 +167,14 @@ if (typeof brutusin === "undefined") {
             var s = getSchema(schemaId);
             var parentSchema = getSchema(parentId);
             var input;
+            if(s.format==='title'){
+                //appendChild(container, input, s);
+
+                /*<td colspan="2">
+    <h3 class="pl-3 bg-primary">MIDI 1.0 Detail</h3></td>*/
+                container.parentNode.innerHTML = `<td colspan="2"><h3 class="pl-3 bg-primary">${s.title}</h3></td>`
+                return parentObject;
+            }else
             if (s.type === "any") {
                 input = document.createElement("textarea");
                 if (value) {
@@ -342,7 +350,7 @@ if (typeof brutusin === "undefined") {
             var schemaId = getSchemaId(id);
             var s = getSchema(schemaId);
             var input;
-            if (s.required) {
+            if (1 || s.required) {
                 input = document.createElement("input");
                 input.type = "checkbox";
                 if (value === true) {

@@ -193,6 +193,9 @@ function buildTinyUSBDescriptors(config){
         let EndPointIn = 0;
         let EndPointOut = 0;
 
+        let EndPointInLength = 0;
+        let EndPointOutLength = 0;
+
         ep.blocks = ep.blocks || [];
 
         ep.gtbDescriptor = [
@@ -224,24 +227,33 @@ function buildTinyUSBDescriptors(config){
             );
         });
 
+        ep.MIDI1Itf.map((m1,idx)=> {
+            if (m1.in) {
+                EndPointIn = 1;
+                EndPointInLength++;
+                EndPointInLength+=6;
+                if(m1.externalCreate)EndPointInLength+=9;
+            }
+            if (m1.out) {
+                EndPointOut = 1;
+                EndPointOutLength++;
+                EndPointOutLength+=6;
+                if(m1.externalCreate)EndPointOutLength+=9;
+            }
+        });
+
 
         let m1TotalLen =
             7 // Audio MS Descriptor - CS Interface
-            +(ep.MIDI1Itf.filter(m1=>m1.in).length * 16)
-            + (ep.MIDI1Itf.filter(m1=>m1.out).length * 16)
+            //+(ep.MIDI1Itf.filter(m1=>m1.in).length * 16) //TODO Handle externalCreate
+            //+ (ep.MIDI1Itf.filter(m1=>m1.out).length * 16) //TODO Handle externalCreate
+            + EndPointInLength + EndPointOutLength
             +9 // ----- EP Descriptor - Endpoint - MIDI OUT
             +4 // ----- Audio MS Descriptor - CS Endpoint - EP General
             +9 // ----- EP Descriptor - Endpoint - MIDI IN
             +4; // ----- Audio MS Descriptor - CS Endpoint - EP General
 
-        ep.MIDI1Itf.map((m1,idx)=> {
-            if (m1.in) {
-                EndPointIn = 1;
-            }
-            if (m1.out) {
-                EndPointOut = 1;
-            }
-        });
+
 
 
         descriptor.push(...[
@@ -310,32 +322,39 @@ function buildTinyUSBDescriptors(config){
                     {v:0x02,m:"bDescriptorSubtype = MIDI_IN_JACK"},
                     {v:0x01,m:"bJackType = EMBEDDED"},
                     {v: (idx*4) + 1 + (epIdx*16),m:"bJackID"},
-                    {v:addString(m1.name),m:`iJack - "${m1.name}"`},
-
-                    {m:"Audio MS Descriptor - CS Interface - MIDI OUT Jack (EXT) (Main Out)"},
-                    {v:0x09,m:"bLength"},
-                    {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
-                    {v:0x03,m:"bDescriptorSubtype = MIDI_OUT_JACK"},
-                    {v:0x02,m:"bJackType = EXTERNAL"},
-                    {v:(idx*4) + 16 + 1 + (epIdx*16),m:"bJackID"},
-                    {v:0x01,m:"bNrInputPins"},
-                    {v:(idx*4) + 1 + (epIdx*16),m:"baSourceID"},
-                    {v:0x01,m:"baSourcePin"},
-                    {v:addString(m1.name),m:`iJack - "${m1.name}"`},
+                    {v:addString(m1.name),m:`iJack - "${m1.name}"`}
                 ]);
+                if(m1.externalCreate){
+                    descriptor.push(...[
+                        {m:"Audio MS Descriptor - CS Interface - MIDI OUT Jack (EXT) (Main Out)"},
+                        {v:0x09,m:"bLength"},
+                        {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
+                        {v:0x03,m:"bDescriptorSubtype = MIDI_OUT_JACK"},
+                        {v:0x02,m:"bJackType = EXTERNAL"},
+                        {v:(idx*4) + 16 + 1 + (epIdx*16),m:"bJackID"},
+                        {v:0x01,m:"bNrInputPins"},
+                        {v:(idx*4) + 1 + (epIdx*16),m:"baSourceID"},
+                        {v:0x01,m:"baSourcePin"},
+                        {v:addString(m1.name),m:`iJack - "${m1.name}"`}
+                    ]);
+                }
+
             }
 
             if(m1.out){
                 midiOutJackId.push({v:(idx*4) + 16  + 2 + (epIdx*16),m:`Jack Id - "${m1.name}"`});
+                if(m1.externalCreate) {
+                    descriptor.push(...[
+                        {m: "Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Main In)"},
+                        {v: 0x06, m: "bLength"},
+                        {v: 0x24, m: "bDescriptorType = CS_INTERFACE"},
+                        {v: 0x02, m: "bDescriptorSubtype = MIDI_IN_JACK"},
+                        {v: 0x02, m: "bJackType = EXTERNAL"},
+                        {v: (idx * 4) + 2 + (epIdx * 16), m: "bJackID"},
+                        {v: addString(m1.name), m: `iJack - "${m1.name}"`}
+                    ]);
+                }
                 descriptor.push(...[
-                    {m:"Audio MS Descriptor - CS Interface - MIDI IN Jack (EXT) (Main In)"},
-                    {v:0x06,m:"bLength"},
-                    {v:0x24,m:"bDescriptorType = CS_INTERFACE"},
-                    {v:0x02,m:"bDescriptorSubtype = MIDI_IN_JACK"},
-                    {v:0x02,m:"bJackType = EXTERNAL"},
-                    {v:(idx*4) + 2  + (epIdx*16),m:"bJackID"},
-                    {v:addString(m1.name),m:`iJack - "${m1.name}"`},
-
                     {m:"Audio MS Descriptor - CS Interface - MIDI OUT Jack (EMB) (Main Out)"},
                     {v:0x09,m:"bLength"},
                     {v:0x24,m:"bDescriptorType"},
@@ -343,9 +362,9 @@ function buildTinyUSBDescriptors(config){
                     {v:0x01,m:"bJackType"},
                     {v:(idx*4) + 16 +2 + (epIdx*16),m:"bJackID"},
                     {v:0x01,m:"Number of Input Pins of this Jack"},
-                    {v:(idx*4) + 2  + (epIdx*16),m:"baSourceID"},
+                    {v:m1.externalCreate?(idx*4) + 2  + (epIdx*16):0,m:"baSourceID"},
                     {v:1/*midiOutJackId.length*/,m:"baSourcePin"},
-                    {v:addString(m1.name),m:`iJack - "${m1.name}"`},
+                    {v:addString(m1.name),m:`iJack - "${m1.name}"`}
                 ]);
             }
 

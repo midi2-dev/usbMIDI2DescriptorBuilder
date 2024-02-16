@@ -51,7 +51,11 @@
       "type": "integer",
       "maximum": 255
     },
-
+    "titleCDC": {
+      "title": "USB CDC (Serial) Support",
+      "type": "string",
+      "format": "title"
+    },
     "CDC": {
       "title": "Serial CDC",
       "description": "Setting to true will enable a CDC interface",
@@ -61,14 +65,19 @@
       "title": "CDC Name",
       "type": "string"
     },
-
+    "title2": {
+      "title": "MIDI USB Endpoints",
+      "type": "string",
+      "format": "title"
+    },
     "processUmpManually": {
       "title": "Process UMP Manually (L)",
       "description": "Linux Gadget will attempt to process incoming UMP 1.1. request and respond regardless if there is an attached application to the ALSA Device. Setting this to true will stop this feature.",
       "type": "boolean"
     },
+
     "endpoints": {
-      "title": "UMP Endpoints",
+      "title": "Endpoints",
       "description": "More than one UMP Endpoint is not recommended at this time due to limited support.",
       "type": "array",
       "items":{
@@ -95,18 +104,30 @@
               "type": "string",
               "pattern": "^0x[0-9ABCDEFabcdef]{4}$"
             },
+            "title1": {
+              "title": "MIDI 1.0 Details",
+              "type": "string",
+              "format": "title"
+            },
             "MIDI1Itf": {
-              "title": "MIDI 1.0 Endpoints (T)",
+              "title": "MIDI 1.0 Jacks (T)",
               "type": "array",
               "items": {
                   "type": "object",
                   "properties": {
                     "in": {
-                      "title": "Input",
+                      "title": "Embedded Output",
+                      "description": "This creates an Embedded Output",
                       "type": "boolean"
                     },
                     "out": {
-                      "title": "Output",
+                      "title": "Embedded Input",
+                      "description": "This creates an Embedded Input",
+                      "type": "boolean"
+                    },
+                    "externalCreate": {
+                      "title": "Create Matching External ports",
+                      "description": "This creates a matching External IN/OUT",
                       "type": "boolean"
                     },
                     "name": {
@@ -115,11 +136,15 @@
                     }
                   },
                   "required": [
-                    "in",
-                    "out",
                     "name"
                   ]
                 }
+            },
+
+            "title2": {
+              "title": "MIDI 2.0 Details",
+              "type": "string",
+              "format": "title"
             },
             "defaultGTBProtocol": {
               "title": "Default MIDI 2.0 Protocol",

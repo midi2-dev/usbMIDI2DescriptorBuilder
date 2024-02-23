@@ -79,10 +79,11 @@ form.brutusin-form table table{
 form.brutusin-form td {
     vertical-align: top;
     padding: 4px;
-    white-space: nowrap;
+    /*white-space: nowrap;*/
 }
 form.brutusin-form td.prop-name {
     text-align: right;
+    width: 50%;
 }
 form.brutusin-form td.add-prop-name table {
     text-align: right;
@@ -92,7 +93,7 @@ form.brutusin-form td.add-prop-name table td {
     vertical-align: middle;
 }
 form.brutusin-form td.prop-value {
-    width: 100%;   
+    /*width: 100%;   */
     text-align: left;
 }
 form.brutusin-form td.item-index{

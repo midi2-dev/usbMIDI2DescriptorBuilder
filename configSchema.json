@@ -5,7 +5,7 @@
 
     "idVendor": {
       "title": "USB ID Vendor",
-      "description": "Use hex e.g 0xCAFE",
+      "description": "Use hex e.g 0x6666",
       "type": "string",
       "pattern": "^0x[0-9ABCDEFabcdef]{4}$"
     },
@@ -116,12 +116,12 @@
                   "type": "object",
                   "properties": {
                     "in": {
-                      "title": "Embedded Output",
+                      "title": "Embedded In",
                       "description": "This creates an Embedded Output",
                       "type": "boolean"
                     },
                     "out": {
-                      "title": "Embedded Input",
+                      "title": "Embedded Output",
                       "description": "This creates an Embedded Input",
                       "type": "boolean"
                     },

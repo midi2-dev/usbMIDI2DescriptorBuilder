@@ -219,11 +219,17 @@ if (typeof brutusin === "undefined") {
             } else {
                 input = document.createElement("input");
                 if (s.type === "integer" || s.type === "number") {
-                    input.type = "number";
-                    input.step = s.step?""+s.step:"any";
-                    if (typeof value !== "number") {
-                        value = null;
+                    if (s.format==="hex"){
+                        input.type = "text";
+                        if(Number.isInteger(value)) value = "0x"+("00" + value.toString(16)).slice (-2).toUpperCase();
+                    }else{
+                        input.type = "number";
+                        input.step = s.step?""+s.step:"any";
+                        if (typeof value !== "number") {
+                            value = null;
+                        }
                     }
+
                 } else if (s.format === "date-time") {
                     try {
                         input.type = "datetime-local";
@@ -411,6 +417,9 @@ if (typeof brutusin === "undefined") {
             var noption = document.createElement("option");
             noption.value = null;
             appendChild(input, noption, s);
+            if(s.originalType==="string"){
+                parentObject[propertyProvider.getValue()] = value;
+            }
             for (var i = 0; i < s.oneOf.length; i++) {
                 var option = document.createElement("option");
                 var propId = schemaId + "." + i;
@@ -423,6 +432,14 @@ if (typeof brutusin === "undefined") {
                     continue;
                 if (s.readOnly)
                     input.disabled = true;
+                if(s.originalType==="string"){
+                    if (ss.hasOwnProperty("const")) {
+                        if(ss.const===value){
+                            input.selectedIndex = i + 1;
+                            //render(null, display, id , parentObject, propertyProvider, value);
+                        }
+                    }
+                }
                 if (value.hasOwnProperty("type")) {
                     if (ss.hasOwnProperty("properties")) {
                         if (ss.properties.hasOwnProperty("type")) {
@@ -436,7 +453,14 @@ if (typeof brutusin === "undefined") {
                 }
             }
             input.onchange = function () {
-                render(null, display, id + "." + (input.selectedIndex - 1), parentObject, propertyProvider, value);
+                if(s.originalType==="string"){
+                    //render(container, display, id , parentObject, propertyProvider, getSchema(s.oneOf[this.selectedIndex - 1]).const);
+                    value = getSchema(s.oneOf[this.selectedIndex - 1]).const;
+                    parentObject[propertyProvider.getValue()] = value;
+                }else{
+                    render(null, display, id + "." + (input.selectedIndex - 1), parentObject, propertyProvider, value);
+                }
+
             };
             appendChild(container, input, s);
             appendChild(container, display, s);
@@ -1051,10 +1075,12 @@ if (typeof brutusin === "undefined") {
             if (!schema) {
                 return;
             } else if (schema.hasOwnProperty("oneOf")) {
-                pseudoSchema.oneOf = new Array();
+                pseudoSchema.oneOf = [];
+                pseudoSchema.originalType = schema.type;
                 pseudoSchema.type = "oneOf";
-                for (var i in schema.oneOf) {
-                    var childProp = name + "." + i;
+
+                for (let i in schema.oneOf) {
+                    let childProp = name + "." + i;
                     pseudoSchema.oneOf[i] = childProp;
                     populateSchemaMap(childProp, schema.oneOf[i]);
                 }
@@ -1062,8 +1088,8 @@ if (typeof brutusin === "undefined") {
                 var refSchema = getDefinition(schema["$ref"]);
                 if (refSchema) {
                     if (schema.hasOwnProperty("title") || schema.hasOwnProperty("description")) {
-                        var clonedRefSchema = {};
-                        for (var prop in refSchema) {
+                        let clonedRefSchema = {};
+                        for (let prop in refSchema) {
                             clonedRefSchema[prop] = refSchema[prop];
                         }
                         if (schema.hasOwnProperty("title")) {
@@ -1078,9 +1104,9 @@ if (typeof brutusin === "undefined") {
                 }
             } else if (schema.type === "object") {
                 if (schema.properties) {
-                    pseudoSchema.properties = new Object();
-                    for (var prop in schema.properties) {
-                        var childProp = name + "." + prop;
+                    pseudoSchema.properties = {};
+                    for (let prop in schema.properties) {
+                        let childProp = name + "." + prop;
                         pseudoSchema.properties[prop] = childProp;
                         var subSchema = schema.properties[prop];
                         if (schema.requiredProperties) {
@@ -1094,7 +1120,7 @@ if (typeof brutusin === "undefined") {
                     }
                 }
                 if (schema.patternProperties) {
-                    pseudoSchema.patternProperties = new Object();
+                    pseudoSchema.patternProperties = {};
                     for (var pat in schema.patternProperties) {
                         var patChildProp = name + "[" + pat + "]";
                         pseudoSchema.patternProperties[pat] = patChildProp;
@@ -1235,7 +1261,9 @@ if (typeof brutusin === "undefined") {
                         value = s.default;
                     }
                 }
-                r(container, id, parentObject, propertyProvider, value);
+                //if(s.originalType!=="string") {
+                    r(container, id, parentObject, propertyProvider, value);
+                //}
             } else if (s.$ref) {
                 if (obj.schemaResolver) {
                     var cb = function (schemas) {
@@ -1296,7 +1324,11 @@ if (typeof brutusin === "undefined") {
                 return null;
             }
             if (schema.type === "integer") {
-                value = parseInt(value);
+                if (schema.format==="hex"){
+                    value = parseInt(value,16);
+                }else{
+                    value = parseInt(value);
+                }
                 if (!isFinite(value)) {
                     value = null;
                 }

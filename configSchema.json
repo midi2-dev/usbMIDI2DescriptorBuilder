@@ -111,6 +111,7 @@
             },
             "MIDI1Itf": {
               "title": "MIDI 1.0 Jacks (T)",
+              "description": "Limitations: This MIDI 1.0 Descriptor builder doesn't handle more than one source pin, or elements.",
               "type": "array",
               "items": {
                   "type": "object",
@@ -127,7 +128,7 @@
                     },
                     "externalCreate": {
                       "title": "Create Matching External ports",
-                      "description": "This creates a matching External IN/OUT",
+                      "description": "This creates a matching External IN/OUT.",
                       "type": "boolean"
                     },
                     "name": {

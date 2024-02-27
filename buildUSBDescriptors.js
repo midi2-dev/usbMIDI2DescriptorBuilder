@@ -68,9 +68,7 @@ function buildTinyUSBDescriptors(config){
     let devDevice = [
         {v:18, m: "bLength"},
         {v:0x01, m: "bDescriptorType = TUSB_DESC_DEVICE"},
-        ...U16_TO_U8S_LE(0x02,'bcdUSB'),
-       // {v:0x02, m: 'bcdUSB Major Version (USB 2.0)'},
-        //{v:0x00, m: 'bcdUSB Minor, Sub Minor Version'},
+        ...U16_TO_U8S_LE(0x0200,'bcdUSB'),
         {v:0xEF, m: "bDeviceClass = TUSB_CLASS_MISC"},
         {v:0x02, m: "bDeviceSubClass = TUSB_CLASS_MISC"},
         {v:0x01, m: "bDeviceProtocol = MISC_PROTOCOL_IAD"},
@@ -87,7 +85,7 @@ function buildTinyUSBDescriptors(config){
     let devQualifier = [
         {v:10, m: "bLength"},
         {v:0x06, m: "bDescriptorType = TUSB_DESC_DEVICE_QUALIFIER"},
-        ...U16_TO_U8S_LE(0x02,'bcdUSB'),
+        ...U16_TO_U8S_LE(0x0200,'bcdUSB'),
         {v:0xEF, m: "bDeviceClass = TUSB_CLASS_MISC"},
         {v:0x02, m: "bDeviceSubClass = TUSB_CLASS_MISC"},
         {v:0x01, m: "bDeviceProtocol = MISC_PROTOCOL_IAD"},

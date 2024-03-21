@@ -113,6 +113,7 @@
               "title": "MIDI 1.0 Jacks (T)",
               "description": "Limitations: This MIDI 1.0 Descriptor builder doesn't handle more than one source pin, or elements.",
               "type": "array",
+              "minItems": 1,
               "items": {
                   "type": "object",
                   "properties": {

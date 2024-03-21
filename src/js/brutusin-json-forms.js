@@ -748,9 +748,9 @@ if (typeof brutusin === "undefined") {
 
                 };
                 let sp = getSchema(s['$id'].replace(/\[#\]$/,''));
-                let spValue = getInitialValue(id.replace(/\[[0-9]+\]$/,''))
+                let spValue = parentObject[propertyProvider.getValue()];//getInitialValue(id.replace(/\[[0-9#]+\]$/,''))
                 if(sp.minItems === undefined ||
-                    sp.minItems < (spValue?.length ||0)
+                    sp.minItems <= (spValue?.length ||0)
                 ) {
                     appendChild(td2, removeButton, s);
                 }

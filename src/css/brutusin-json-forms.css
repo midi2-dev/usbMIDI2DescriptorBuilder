@@ -97,8 +97,8 @@ form.brutusin-form td.prop-value {
     text-align: left;
 }
 form.brutusin-form td.item-index{
-    font-size: 0.8em;
-    color: lightgray;
+    /*font-size: 0.8em;*/
+    /*color: lightgray;*/
     width: 25px;
     text-align: right;
 }

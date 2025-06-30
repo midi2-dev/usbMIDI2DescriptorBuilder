@@ -1,6 +1,6 @@
 {
   "prefix": "",
-  "CDC": false,
+  "CDC": 2,
   "CDCName": "ACME CDC",
   "idVendor": "0x6666",
   "idProduct": "0x6666",
@@ -9,7 +9,7 @@
   "version":"0x00010000",
   "product": "ACME Synth",
   "serialNumber": "abcd1234",
-  "power":250,
+  "power":500,
   "processUmpManually": true,
   "endpoints":[
     {

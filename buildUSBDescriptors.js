@@ -15,10 +15,13 @@ function buildTinyUSBDescriptors(config){
     const TUSB_DESC_INTERFACE = 0x04;
     const TUSB_CLASS_CDC_DATA =10;
 
-    const  EPNUM_CDC_NOTIF  = 0x81;
-    const  EPNUM_CDC_OUT    = 0x02;
-    const  EPNUM_CDC_IN     = 0x82;
-    const  EPNUM_MIDI      =  0x03;
+    // const  EPNUM_CDC_NOTIF  = 0x81;
+    // const  EPNUM_CDC_OUT    = 0x02;
+    // const  EPNUM_CDC_IN     = 0x82;
+    // const  EPNUM_MIDI      =  0x03;
+
+    let EPNUM_OUT_start = 0x02;
+    let EPNUM_IN_start = 0x81;
 
     const MIDI_CS_INTERFACE_HEADER    = 0x01;
     const MIDI_CS_INTERFACE_IN_JACK   = 0x02;
@@ -29,6 +32,8 @@ function buildTinyUSBDescriptors(config){
     const MIDI_GR_TRM_BLOCK = 0x02;
 
     let stringIdx = [""];
+
+    config.endpoints = config.endpoints ||[];
 
     function U16_TO_U8S_LE(v,m=""){
         return [
@@ -57,8 +62,8 @@ function buildTinyUSBDescriptors(config){
     let ITF_NUM_CDC = 0;
     let ITF_NUM_MIDI = 0;
     if(config.CDC){
-        ITF_NUM_TOTAL+=2;
-        ITF_NUM_MIDI+=2
+        ITF_NUM_TOTAL+= config.CDC * 2;
+        ITF_NUM_MIDI += config.CDC * 2
     }
 
     let idVendor = parseInt(config.idVendor,16);
@@ -75,7 +80,7 @@ function buildTinyUSBDescriptors(config){
         {v:0x40, m: "bMaxPacketSize0"},
         ...U16_TO_U8S_LE(idVendor,'idVendor'),
         ...U16_TO_U8S_LE(idProduct,'idProduct'),
-        ...U16_TO_U8S_LE(0x4000,'bcdDevice'),
+        ...U16_TO_U8S_LE(0x0100,'bcdDevice'),
         {v:addString(config.manufacturer), m: `iManufacturer  "${config.manufacturer}"`},
         {v:addString(config.product), m: `iProduct  "${config.product}"`},
         {v:addString(config.serialNumber), m: `iSerialNumber - "${config.serialNumber}"`},
@@ -101,7 +106,7 @@ function buildTinyUSBDescriptors(config){
         {v:0x02, m: "bDescriptorType = CONFIGURATION"},
         {v:0x00, m: "wTotalLengthLSB"}, //These are Replaced Later below
         {v:0x00, m: "wTotalLengthMSB"},
-        {v:(config.endpoints.length*2) + (config.CDC?2:0), m: "bNumInterfaces"},
+        {v:(config.endpoints.length*2) + (config.CDC * 2), m: "bNumInterfaces"},
         {v:0x01, m: "bConfigurationValue"},
         {v:0x00, m: "iConfiguration"},
         {v:0x80, m: "bmAttributes"},
@@ -109,81 +114,87 @@ function buildTinyUSBDescriptors(config){
     ];
 
     if(config.CDC){
-        descriptor.push(...[
-            {m:"---------------------------"},
-            {m:"Interface Associate"},
-            {v:8},
-            {v:TUSB_DESC_INTERFACE_ASSOCIATION,m:"TUSB_DESC_INTERFACE_ASSOCIATION"},
-            {v:ITF_NUM_CDC,m:"ITF_NUM_CDC"},
-            {v:2},
-            {v:TUSB_CLASS_CDC,m:"TUSB_CLASS_CDC"},
-            {v:CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,m:"CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL"},
-            {v:CDC_COMM_PROTOCOL_NONE,m:"CDC_COMM_PROTOCOL_NONE"},
-            {v:0},
-            {m:"CDC Control Interface"},
-            {v:9},
-            {v:0x04, m:"TUSB_DESC_INTERFACE"},
-            {v:ITF_NUM_CDC,m:"Interface number"},
-            {v:0},
-            {v:1},
-            {v:TUSB_CLASS_CDC,m:"TUSB_CLASS_CDC"},
-            {v:CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,m:"CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL"},
-            {v:CDC_COMM_PROTOCOL_NONE,m:"CDC_COMM_PROTOCOL_NONE"},
-            {v:addString(config.CDCName),m:`String Index - "${config.CDCName}"`},
-            {m:"CDC Header"},
-            {v:5},
-            {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
-            {v:CDC_FUNC_DESC_HEADER,m:"CDC_FUNC_DESC_HEADER"},
-            ...U16_TO_U8S_LE(0x0120,""),
-            {m:"CDC Call"},
-            {v:5},
-            {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
-            {v:CDC_FUNC_DESC_CALL_MANAGEMENT,m:"CDC_FUNC_DESC_CALL_MANAGEMENT"},
-            {v:0},
-            {v:(ITF_NUM_CDC + 1),m:"Interface Number"},
-            {m:"CDC ACM: support line request"},
-            {v:4},
-            {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
-            {v:CDC_FUNC_DESC_ABSTRACT_CONTROL_MANAGEMENT,m:"CDC_FUNC_DESC_ABSTRACT_CONTROL_MANAGEMENT"},
-            {v:2},
-            {m:"CDC Union"},
-            {v:5},
-            {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
-            {v:CDC_FUNC_DESC_UNION,m:"CDC_FUNC_DESC_UNION"},
-            {v:ITF_NUM_CDC,m:"ITF_NUM_CDC"},
-            {v:(ITF_NUM_CDC + 1),m:"ITF_NUM_CDC + 1"},
-            {m:"Endpoint Notification"},
-            {v:7},
-            {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
-            {v:EPNUM_CDC_NOTIF,m:"EPNUM_CDC_NOTIF"},
-            {v:TUSB_XFER_INTERRUPT,m:"TUSB_XFER_INTERRUPT"},
-            ...U16_TO_U8S_LE(8,"_ep_notif_size"), //_ep_notif_size
-            {v:16},
-            {m:"CDC Data Interface"},
-            {v:9},
-            {v: TUSB_DESC_INTERFACE,m:"TUSB_DESC_INTERFACE"},
-            {v:(ITF_NUM_CDC+1),m:"Interface Number"},
-            {v:0},
-            {v:2},
-            {v:TUSB_CLASS_CDC_DATA,m:"TUSB_CLASS_CDC_DATA"},
-            {v:0},
-            {v:0},
-            {v:0},
-            {m:"Endpoint Out"},
-            {v:7},
-            {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
-            {v:EPNUM_CDC_OUT,m:"EPNUM_CDC_OUT"},
-            {v:TUSB_XFER_BULK,m:"TUSB_XFER_BULK"},
-            ...U16_TO_U8S_LE(64,"epSize"), //_epsize
-            {v:0},
-            {m:"Endpoint In"},
-            {v:7},
-            {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
-            {v:EPNUM_CDC_IN,m:"EPNUM_CDC_IN"},
-            {v:TUSB_XFER_BULK,m:"TUSB_XFER_BULK"},
-            ...U16_TO_U8S_LE(64,"epSize"), //_epsize
-            {v:0}
-        ]);
+        for(let i=0; i<config.CDC; i++){
+            descriptor.push(...[
+                {m:"---------------------------"},
+                {m:"Interface Associate"},
+                {v:8},
+                {v:TUSB_DESC_INTERFACE_ASSOCIATION,m:"TUSB_DESC_INTERFACE_ASSOCIATION"},
+                {v:ITF_NUM_CDC,m:"ITF_NUM_CDC"},
+                {v:2},
+                {v:TUSB_CLASS_CDC,m:"TUSB_CLASS_CDC"},
+                {v:CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,m:"CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL"},
+                {v:CDC_COMM_PROTOCOL_NONE,m:"CDC_COMM_PROTOCOL_NONE"},
+                {v:0},
+                {m:"CDC Control Interface"},
+                {v:9},
+                {v:0x04, m:"TUSB_DESC_INTERFACE"},
+                {v:ITF_NUM_CDC,m:"Interface number"},
+                {v:0},
+                {v:1},
+                {v:TUSB_CLASS_CDC,m:"TUSB_CLASS_CDC"},
+                {v:CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL,m:"CDC_COMM_SUBCLASS_ABSTRACT_CONTROL_MODEL"},
+                {v:CDC_COMM_PROTOCOL_NONE,m:"CDC_COMM_PROTOCOL_NONE"},
+                {v:addString(`${config.CDCName} ${i+1}`),m:`String Index - "${config.CDCName} ${i+1}"`},
+                {m:"CDC Header"},
+                {v:5},
+                {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
+                {v:CDC_FUNC_DESC_HEADER,m:"CDC_FUNC_DESC_HEADER"},
+                ...U16_TO_U8S_LE(0x0120,""),
+                {m:"CDC Call"},
+                {v:5},
+                {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
+                {v:CDC_FUNC_DESC_CALL_MANAGEMENT,m:"CDC_FUNC_DESC_CALL_MANAGEMENT"},
+                {v:0},
+                {v:(ITF_NUM_CDC + 1),m:"Interface Number"},
+                {m:"CDC ACM: support line request"},
+                {v:4},
+                {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
+                {v:CDC_FUNC_DESC_ABSTRACT_CONTROL_MANAGEMENT,m:"CDC_FUNC_DESC_ABSTRACT_CONTROL_MANAGEMENT"},
+                {v:6}, //Sometimes this is 2?
+                {m:"CDC Union"},
+                {v:5},
+                {v:TUSB_DESC_CS_INTERFACE,m:"TUSB_DESC_CS_INTERFACE"},
+                {v:CDC_FUNC_DESC_UNION,m:"CDC_FUNC_DESC_UNION"},
+                {v:ITF_NUM_CDC,m:"ITF_NUM_CDC"},
+                {v:(ITF_NUM_CDC + 1),m:"ITF_NUM_CDC + 1"},
+                {m:"Endpoint Notification"},
+                {v:7},
+                {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
+                {v:EPNUM_IN_start++,m:"EPNUM_CDC_NOTIF"},
+                {v:TUSB_XFER_INTERRUPT,m:"TUSB_XFER_INTERRUPT"},
+                ...U16_TO_U8S_LE(64,"_ep_notif_size"), //_ep_notif_size
+                {v:16},
+                {m:"CDC Data Interface"},
+                {v:9},
+                {v: TUSB_DESC_INTERFACE,m:"TUSB_DESC_INTERFACE"},
+                {v:(ITF_NUM_CDC+1),m:"Interface Number"},
+                {v:0},
+                {v:2},
+                {v:TUSB_CLASS_CDC_DATA,m:"TUSB_CLASS_CDC_DATA"},
+                {v:0},
+                {v:0},
+                {v:0},
+                {m:"Endpoint Out"},
+                {v:7},
+                {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
+                {v:EPNUM_OUT_start++,m:"EPNUM_CDC_OUT"},
+                {v:TUSB_XFER_BULK,m:"TUSB_XFER_BULK"},
+                ...U16_TO_U8S_LE(64,"epSize"), //_epsize
+                {v:0},
+                {m:"Endpoint In"},
+                {v:7},
+                {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
+                {v:EPNUM_IN_start++,m:"EPNUM_CDC_IN"},
+                {v:TUSB_XFER_BULK,m:"TUSB_XFER_BULK"},
+                ...U16_TO_U8S_LE(64,"epSize"), //_epsize
+                {v:0}
+            ]);
+            ITF_NUM_CDC+=2;
+            EPNUM_IN_start+=2;
+            EPNUM_OUT_start+=1;
+        }
+
     }
 
 
@@ -312,6 +323,7 @@ function buildTinyUSBDescriptors(config){
 
         let midiInJackId=[];
         let midiOutJackId=[];
+
         ep.MIDI1Itf.map((m1,idx)=>{
             if(m1.in){
                 let bJackId = (idx*4) + 1 + (epIdx*16);
@@ -379,7 +391,7 @@ function buildTinyUSBDescriptors(config){
                 {m:"EP Descriptor - Endpoint - MIDI OUT"},
                 {v:0x09,m:"bLength"},
                 {v:0x05,m:"bDescriptorType = ENDPOINT"},
-                {v:(epIdx) + EPNUM_MIDI,m:"bEndpointAddress (OUT)"},
+                {v:EPNUM_OUT_start,m:"bEndpointAddress (OUT)"},
                 {v:0x02,m:"bmAttributes"},
                 {v:0x40,m:"wMaxPacketSizeLSB"},
                 {v:0x00,m:"wMaxPacketSizeMSB"},
@@ -401,7 +413,7 @@ function buildTinyUSBDescriptors(config){
                 {m:"EP Descriptor - Endpoint - MIDI IN"},
                 {v:0x09,m:"bLength"},
                 {v:0x05,m:"bDescriptorType = ENDPOINT"},
-                {v:0x80+ (epIdx) +EPNUM_MIDI,m:"bEndpointAddress (IN)"},
+                {v:EPNUM_IN_start,m:"bEndpointAddress (IN)"},
                 {v:0x02,m:"bmAttributes"},
                 {v:0x40,m:"wMaxPacketSizeLSB"},
                 {v:0x00,m:"wMaxPacketSizeMSB"},
@@ -447,7 +459,7 @@ function buildTinyUSBDescriptors(config){
                 {m: "EP Descriptor - Endpoint - MIDI OUT"},
                 {v: 0x07, m: "bLength"},
                 {v: 0x05, m: "bDescriptorType = ENDPOINT"},
-                {v: (epIdx) + EPNUM_MIDI, m: "bEndpointAddress (OUT)"},
+                {v: EPNUM_OUT_start, m: "bEndpointAddress (OUT)"},
                 {v: 0x02, m: "bmAttributes"},
                 {v: 0x40, m: "wMaxPacketSizeLSB"},
                 {v: 0x00, m: "wMaxPacketSizeMSB"},
@@ -464,7 +476,7 @@ function buildTinyUSBDescriptors(config){
                 {m: "EP Descriptor - Endpoint - MIDI IN"},
                 {v: 0x07, m: "bLength"},
                 {v: 0x05, m: "bDescriptorType = ENDPOINT"},
-                {v: 0x80 + (epIdx) + EPNUM_MIDI, m: "bEndpointAddress (IN)"},
+                {v: EPNUM_IN_start, m: "bEndpointAddress (IN)"},
                 {v: 0x02, m: "bmAttributes"},
                 {v: 0x40, m: "wMaxPacketSizeLSB"},
                 {v: 0x00, m: "wMaxPacketSizeMSB"},
@@ -481,6 +493,8 @@ function buildTinyUSBDescriptors(config){
         }
 
         ITF_NUM_MIDI += 2;
+        EPNUM_IN_start++;
+        EPNUM_OUT_start++;
     });
 
     config.prefix = config.prefix || "";

@@ -228,7 +228,7 @@ function buildTinyUSBDescriptors(config){
                 {v:MIDI_CS_INTERFACE_GR_TRM_BLOCK,m:"bDescriptorType = CS_GR_TRM_BLOCK"},
                 {v:MIDI_GR_TRM_BLOCK,m:"bDescriptorSubtype = GR_TRM_BLOCK"},
                 {v:idx+1,m:"bGrpTrmBlkID"},
-                {v: gtb.in && gtb.out? 0x00: gtb.out?0x02: 0x01,m:"bGrpTrmBlkType = "+gtb.in && gtb.out? "birectional": gtb.out?"out": "in"},
+                {v: gtb.in && gtb.out? 0x00: gtb.out?0x02: 0x01,m:"bGrpTrmBlkType = "+gtb.in && gtb.out? "bidirectional": gtb.out?"out": "in"},
                 {v:gtb.firstGroup -1,m:"First Group"},
                 {v:gtb.numOfGroups,m:"nNumGroupTrm"},
                 {v:addString(gtb.name),m:`iBlockItem - "${gtb.name}"`},
@@ -522,7 +522,7 @@ function buildTinyUSBDescriptors(config){
     let gtbarray= [];
     config.endpoints.map((ep,idx)=>{
         if(ep.gtbDescriptor.length <= 5)return;
-        gtbarray.push(`gtb${idx}`);
+        gtbarray.push(`${config.prefix}gtb${idx}`);
         out.push(`uint8_t const ${config.prefix}gtb${idx}[] = {`)
         if(ep.blocks?.length)out.push(outStr(ep.gtbDescriptor));
         out.push("};")

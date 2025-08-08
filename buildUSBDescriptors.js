@@ -15,13 +15,9 @@ function buildTinyUSBDescriptors(config){
     const TUSB_DESC_INTERFACE = 0x04;
     const TUSB_CLASS_CDC_DATA =10;
 
-    // const  EPNUM_CDC_NOTIF  = 0x81;
-    // const  EPNUM_CDC_OUT    = 0x02;
-    // const  EPNUM_CDC_IN     = 0x82;
-    // const  EPNUM_MIDI      =  0x03;
 
-    let EPNUM_OUT_start = 0x02;
-    let EPNUM_IN_start = 0x81;
+    let EPNUM_OUT_start = 0x01;
+    //let EPNUM_IN_start = 0x81;
 
     const MIDI_CS_INTERFACE_HEADER    = 0x01;
     const MIDI_CS_INTERFACE_IN_JACK   = 0x02;
@@ -161,7 +157,7 @@ function buildTinyUSBDescriptors(config){
                 {m:"Endpoint Notification"},
                 {v:7},
                 {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
-                {v:EPNUM_IN_start++,m:"EPNUM_CDC_NOTIF"},
+                {v:EPNUM_OUT_start+0x80,m:"EPNUM_CDC_NOTIF"},
                 {v:TUSB_XFER_INTERRUPT,m:"TUSB_XFER_INTERRUPT"},
                 ...U16_TO_U8S_LE(64,"_ep_notif_size"), //_ep_notif_size
                 {v:16},
@@ -178,21 +174,21 @@ function buildTinyUSBDescriptors(config){
                 {m:"Endpoint Out"},
                 {v:7},
                 {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
-                {v:EPNUM_OUT_start++,m:"EPNUM_CDC_OUT"},
+                {v:EPNUM_OUT_start+1,m:"EPNUM_CDC_OUT"},
                 {v:TUSB_XFER_BULK,m:"TUSB_XFER_BULK"},
                 ...U16_TO_U8S_LE(64,"epSize"), //_epsize
                 {v:0},
                 {m:"Endpoint In"},
                 {v:7},
                 {v:TUSB_DESC_ENDPOINT,m:"TUSB_DESC_ENDPOINT"},
-                {v:EPNUM_IN_start++,m:"EPNUM_CDC_IN"},
+                {v:EPNUM_OUT_start+1+0x80,m:"EPNUM_CDC_IN"},
                 {v:TUSB_XFER_BULK,m:"TUSB_XFER_BULK"},
                 ...U16_TO_U8S_LE(64,"epSize"), //_epsize
                 {v:0}
             ]);
             ITF_NUM_CDC+=2;
-            EPNUM_IN_start+=2;
-            EPNUM_OUT_start+=1;
+            //EPNUM_IN_start+=2;
+            EPNUM_OUT_start+=2;
         }
 
     }
@@ -413,7 +409,7 @@ function buildTinyUSBDescriptors(config){
                 {m:"EP Descriptor - Endpoint - MIDI IN"},
                 {v:0x09,m:"bLength"},
                 {v:0x05,m:"bDescriptorType = ENDPOINT"},
-                {v:EPNUM_IN_start,m:"bEndpointAddress (IN)"},
+                {v:EPNUM_OUT_start+80,m:"bEndpointAddress (IN)"},
                 {v:0x02,m:"bmAttributes"},
                 {v:0x40,m:"wMaxPacketSizeLSB"},
                 {v:0x00,m:"wMaxPacketSizeMSB"},
@@ -476,7 +472,7 @@ function buildTinyUSBDescriptors(config){
                 {m: "EP Descriptor - Endpoint - MIDI IN"},
                 {v: 0x07, m: "bLength"},
                 {v: 0x05, m: "bDescriptorType = ENDPOINT"},
-                {v: EPNUM_IN_start, m: "bEndpointAddress (IN)"},
+                {v: EPNUM_OUT_start+0x80, m: "bEndpointAddress (IN)"},
                 {v: 0x02, m: "bmAttributes"},
                 {v: 0x40, m: "wMaxPacketSizeLSB"},
                 {v: 0x00, m: "wMaxPacketSizeMSB"},
@@ -493,7 +489,7 @@ function buildTinyUSBDescriptors(config){
         }
 
         ITF_NUM_MIDI += 2;
-        EPNUM_IN_start++;
+        //EPNUM_IN_start++;
         EPNUM_OUT_start++;
     });
 

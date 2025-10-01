@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name=viewport content='width=560'>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+        <link rel="stylesheet" href="lib/bootstrap/css/bootstrap.min.css" >
+<!--        <link rel="stylesheet" href="lib/bootstrap/css/bootstrap-theme.min.css" >-->
+        <link rel="stylesheet" href="lib/codemirror/codemirror.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css" integrity="sha512-ARJR74swou2y0Q2V9k0GbzQ/5vJ2RBSoCWokg4zkfM29Fb3vZEQyv0iWBMW/yvKgyHSR/7D64pFMmU8nYmbRkg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link rel="stylesheet" href="lib/octicons/octicons.css">
+        <link rel="stylesheet" href='src/css/brutusin-json-forms.css'/>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+        <style>
+            img {
+                max-width: 100%
+            }
+            .CodeMirror {
+                height: 400px;
+            }
+            .form-inline label{
+                display: inline-block;
+            }
+            .show{
+                opacity: 1;
+            }
+        </style>
+
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+        <script src="lib/codemirror/codemirror.js"></script>
+        <script src="lib/codemirror/codemirror-javascript.js"></script>
+        <script src="lib/markdown.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.14/js/bootstrap-select.min.js" integrity="sha512-CJXg3iK9v7yyWvjk2npXkQjNQ4C1UES1rQaNB7d7ZgEVX2a8/2BmtDmtTclW4ial1wQ41cU34XPxOw+6xJBmTQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.14/js/i18n/defaults-en_US.min.js" integrity="sha512-29UqgjaGxHyaEq1vJw4Q20iw6gBOMJDEUud/MNhXrJK6avCLukZ3eQf93AG7dywglnx21FoBvmHHBzP32O2YUw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <!--
+        <script src="//rawgit.com/brutusin/json-forms/master/dist/js/brutusin-json-forms.min.js"></script>
+         -->
+        <script src="src/js/brutusin-json-forms.js"></script>
+        <script src="src/js/brutusin-json-forms-bootstrap.js"></script>
+        <script src="buildProtozoaTemplate.js"></script>
+        <script lang="javascript">
+
+            const fetchJson = async (url) => {
+                try {
+                    const data = await fetch(url);
+                    return await data.json();
+                } catch (error) {
+                    console.log(error);
+                    return {};
+                }
+            };
+
+            var BrutusinForms = brutusin["json-forms"];
+            BrutusinForms.bootstrap.addFormatDecorator("inputstream", "file", "bi-search", null, function (element) {
+                alert("user callback on element " + element)
+            });
+            BrutusinForms.bootstrap.addFormatDecorator("color", "color");
+            BrutusinForms.bootstrap.addFormatDecorator("date", "date");
+            //Title decorator
+            BrutusinForms.bootstrap.addFormatDecorator(null, null, null, ":");
+            let codeMirror;
+            let schema;
+            let configData;
+            let bf;
+
+            function generateForm() {
+                let textdata = codeMirror.getValue();
+                $("#jsonAlert").hide();
+                try{
+                    configData = JSON.parse(textdata);
+                    $('#formLink').click();
+                    bf = BrutusinForms.create(schema);
+                    var container = document.getElementById('container');
+                    while (container.firstChild) {
+                        container.removeChild(container.firstChild);
+                    }
+                    bf.render(container, configData);
+                }catch (e) {              }
+            }
+
+            function resetForm(){
+                var element = document.getElementById("brutusin-form");
+                element.reset();
+            }
+
+            function generateOutput(){
+                if (bf.validate()) {
+                    configData = bf.getData();
+                    //Set Code Mirror value
+
+                    codeMirror.getDoc().setValue(JSON.stringify(configData,null, 4));
+
+                    const out = buildProtozoa(configData);
+                    $('#outputPZ').empty().text(out);
+
+                    $('#protoOutLink').click();
+                }
+            }
+
+        </script>
+
+    </head>
+    <body>
+        <div class="container" >
+            <h1>Protozoa Builder</h1>
+
+            <div class="accordion" id="accordion">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseInput" aria-expanded="true" aria-controls="collapseInput">
+                            JSON Configuration
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseInput" class="collapse show" data-parent="#accordion">
+                        <div class="card-body">
+                            <div class="" id="data" role="tabpanel" aria-labelledby="data-tab"></div>
+
+                            <div class="alert alert-danger in" role="alert" id="jsonAlert" style="display:none; margin-top:1rem;">
+                                <span onclick='$("#jsonAlert").hide();' class="close" >&times;</span>
+                                <strong>Error!</strong> <span id="error-message"></span>
+                            </div>
+                            <button class="btn btn-primary mt-3" onclick="generateForm()">Create form</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link btn-block text-left collapsed" id="formLink" type="button" data-toggle="collapse" data-target="#collapseForm" aria-expanded="false" aria-controls="collapseForm">
+                                Generated form
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseForm" class="collapse" data-parent="#accordion">
+                        <div class="card-body">
+
+                            <div id='container' style="padding-left:12px;padding-right:12px;padding-bottom: 12px;"></div>
+                            <div class="panel-footer">
+                                <button class="btn btn-primary" onclick="generateOutput()">Create Output</button>&nbsp;
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="mb-0">
+                            <button id="protoOutLink" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOutputProtoZOA" aria-expanded="true" aria-controls="collapseInput">
+                                Output: C++
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapseOutputProtoZOA" class="collapse show" data-parent="#accordion">
+                        <div class="card-body">
+                            <code style="white-space: pre-wrap;background-color: transparent;" id="outputPZ" role="tabpanel" aria-labelledby="data-tab"></code>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+        <script lang="javascript">
+
+            async function launch(){
+                schema = await fetchJson("./configSchemaProtozoa.json");
+                configData = await fetchJson("./configProtozoa.json");
+
+                codeMirror = CodeMirror(document.getElementById("data"), {
+                    value: JSON.stringify(configData, null, 4),
+                    mode: "javascript",
+                    lineNumbers: true
+                });
+
+                generateForm();
+            }
+
+            launch();
+
+
+
+
+        </script>
+    </body>
+</html> 

@@ -1,0 +1,65 @@
+{
+  "endpointName": "ProtoZoa Test",
+  "manufacturerId": "0x7E0000",
+  "familyId": "0x0000",
+  "modelId": "0x0000",
+  "version": "0x00000000",
+  "product": "ACME Test",
+  "m2": true,
+  "m1": true,
+  "scaffolding": {
+    "utility": true,
+    "system": true,
+    "cvm": true,
+    "flexdata": true
+  },
+  "functionBlocks": [
+    {
+      "name": "FB 1",
+      "firstGroup": 1,
+      "numOfGroups": 1,
+      "in": true,
+      "out": true,
+      "uihintIn": true,
+      "uihintOut": false,
+      "isMIDI1": false,
+      "profiles": [
+        {
+          "profileId": "0x2000",
+          "level": 1,
+          "version": 1,
+          "channel": 1
+        },
+        {
+          "profileId": "0x2002",
+          "level": 1,
+          "version": 1,
+          "channel": 1
+        }
+      ]
+    }
+  ],
+  "dinSupport": 1,
+  "pot1": {
+    "cvm": "CC",
+    "group": 1,
+    "channel": 1,
+    "index": 7
+  },
+  "pot2": {
+    "cvm": "Registered Controller",
+    "group": 1,
+    "channel": 2,
+    "bank": 20,
+    "index": 21
+  },
+  "buttonNotes": [
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66
+  ]
+}

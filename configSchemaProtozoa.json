@@ -1,0 +1,319 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+
+
+    "endpointName": {
+      "title": "Endpoint Name",
+      "type": "string",
+      "maxLength": 254,
+      "format": "UTF8"
+    },
+    "manufacturerId": {
+      "title": "Sysex Id",
+      "type": "string",
+      "pattern": "^0x[0-9ABCDEFabcdef]{6}$"
+    },
+    "familyId": {
+      "title": "Family Id",
+      "type": "string",
+      "pattern": "^0x[0-9ABCDEFabcdef]{4}$"
+    },
+    "modelId": {
+      "title": "Model Id",
+      "type": "string",
+      "pattern": "^0x[0-9ABCDEFabcdef]{4}$"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string",
+      "pattern": "^0x[0-9ABCDEFabcdef]{8}$"
+    },
+    "product": {
+      "title": "Product Name",
+      "type": "string",
+      "maxLength": 98,
+      "format": "UTF8"
+    },
+    "m2": {
+      "title": "MIDI 2.0 Protocol",
+      "type": "boolean"
+    },
+    "m1": {
+      "title": "MIDI 1.0 Protocol",
+      "type": "boolean"
+    },
+
+    "scaffolding": {
+      "type": "object",
+      "title": "Setup Handlers for",
+      "properties": {
+        "utility": {
+          "title": "Utility Messages",
+          "type": "boolean"
+        },
+        "system": {
+          "title": "System Messages",
+          "type": "boolean"
+        },
+        "cvm": {
+          "title": "Channel Voice Messages",
+          "type": "boolean"
+        },
+        "flexdata": {
+          "title": "Flex Data Messages",
+          "type": "boolean"
+        }
+      }
+    },
+
+
+
+    "title2": {
+      "title": "Function Blocks",
+      "type": "string",
+      "format": "title"
+    },
+
+
+    "functionBlocks": {
+      "title": "Function Blocks",
+      "description": "Each Function Block can have attributes",
+      "type": "array",
+      "items":{
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Function Block Name",
+              "type": "string"
+            },
+            "firstGroup": {
+              "title": "First Group (1-16)",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "numOfGroups": {
+              "title": "Number of Groups (1-16)",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            },
+            "in": {
+              "title": "Input",
+              "type": "boolean"
+            },
+            "out": {
+              "title": "Output",
+              "type": "boolean"
+            },
+            "uihintIn": {
+              "title": "UI Hint In",
+              "type": "boolean"
+            },
+            "uihintOut": {
+              "title": "UI Hint Out",
+              "type": "boolean"
+            },
+
+            "isMIDI1": {
+              "title": "Is MIDI 1.0 Only",
+              "type": "boolean"
+            },
+            "maxS8Streams": {
+              "title": "Max Sysex 8 Streams",
+              "type": "integer"
+            },
+
+            "title2": {
+              "title": "MIDI CI Details",
+              "type": "string",
+              "format": "title"
+            },
+
+            "profiles": {
+              "title": "Profiles",
+              "description": "",
+              "type": "array",
+              "items":
+                {
+                  "type": "object",
+                  "properties": {
+                    "profileId": {
+                      "title": "Profile",
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "0x0000",
+                          "title": "GM2 Function Block (0x00 0x00)"
+                        },
+                        {
+                          "const": "0x2000",
+                          "title": "Piano Profile (0x20 0x00)"
+                        },
+                        {
+                          "const": "0x2001",
+                          "title": "Drawbar Organ Profile (0x20 0x01)"
+                        },
+                        {
+                          "const": "0x2002",
+                          "title": "GM2 Single Channel (0x20 0x02)"
+                        },
+                        {
+                          "const": "0x2100",
+                          "title": "Default Control Change Mapping (0x21 0x00)"
+                        },
+                        {
+                          "const": "0x2101",
+                          "title": "Note On Orchestral Articulation (0x21 0x01)"
+                        },
+                        {
+                          "const": "0x2170",
+                          "title": "Camera Control (0x21 0x70)"
+                        },
+                        {
+                          "const": "0x2200",
+                          "title": "Rotary Speaker (0x22 0x00)"
+                        },
+                        {
+                          "const": "0x3100",
+                          "title": "MPE (0x31 0x00)"
+                        }
+                      ]
+                    },
+                    "level": {
+                      "title": "Level",
+                      "type": "integer"
+                    },
+                    "version": {
+                      "title": "Version",
+                      "type": "integer"
+                    },
+                    "channel": {
+                      "title": "Channel",
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "firstGroup",
+                    "numOfGroups"
+                  ]
+                }
+
+            }
+          },
+          "required": [
+            "name"
+          ]
+        }
+    },
+    "title3": {
+      "title": "Other Controls",
+      "type": "string",
+      "format": "title"
+    },
+    "dinSupport": {
+      "title": "Bridge MIDI DIN to UMP Group",
+      "type": "integer",
+      "description": "Set the Group Associated with DIN Support or set to 0 to disable.",
+      "minimum": 0,
+      "maximum": 16
+    },
+
+    "pot1": {
+      "title": "Potentiometer 1",
+      "type": "object",
+      "properties": {
+        "cvm": {
+          "title": "Channel Voice Message",
+          "type": "string",
+          "enum": ["CC","Registered Controller","Assignable Controller","Pitch Bend"]
+        },
+        "group": {
+          "title": "Group",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "channel": {
+          "title": "Channel",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "bank": {
+          "title": "Bank",
+          "description": "Leave Blank for CC and Pitch Bend",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        },
+        "index": {
+          "title": "Index",
+          "description": "Leave Blank Pitch Bend",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        }
+      }
+    },
+    "pot2": {
+      "title": "Potentiometer 2",
+      "type": "object",
+      "properties": {
+        "cvm": {
+          "title": "Channel Voice Message",
+          "type": "string",
+          "enum": ["CC","Registered Controller","Assignable Controller","Pitch Bend"]
+        },
+        "group": {
+          "title": "Group",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "channel": {
+          "title": "Channel",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 16
+        },
+        "bank": {
+          "title": "Bank (leave Blank for CC and Pitch Bend)",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        },
+        "index": {
+          "title": "Index",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127
+        }
+      }
+    },
+
+    "buttonNotes": {
+      "title": "Notes on Buttons",
+      "type": "array",
+      "items": {
+        "type": "number",
+        "maxItems": 7,
+        "minItems": 7,
+        "maximum": 127,
+        "minimum": 0
+      }
+    },
+    "prefix": {
+      "title": "Function Name Prefix",
+      "description": "If provided this will prefix functions with this value",
+      "type": "string",
+      "pattern": "^[A-Za-z_][a-zA-Z0-9_]*$"
+    }
+  },
+  "required": [
+    "manufacturerId"
+  ]
+}

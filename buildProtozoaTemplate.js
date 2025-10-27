@@ -26,7 +26,7 @@ function buildProtozoa(config){
         '// MIDI 2.0 Handling',
         '#include "include/umpProcessor.h"',
         '#include "include/umpMessageCreate.h"',
-        '#include "include/functionblockHelper.h"'
+        '#include "midi2Helper.h"'
     );
 
     if(midiCiProfilesInUse || midiCiPEInUse) {

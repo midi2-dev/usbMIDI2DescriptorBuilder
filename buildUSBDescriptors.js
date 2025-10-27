@@ -409,7 +409,7 @@ function buildTinyUSBDescriptors(config){
                 {m:"EP Descriptor - Endpoint - MIDI IN"},
                 {v:0x09,m:"bLength"},
                 {v:0x05,m:"bDescriptorType = ENDPOINT"},
-                {v:EPNUM_OUT_start+80,m:"bEndpointAddress (IN)"},
+                {v:EPNUM_OUT_start+0x80,m:"bEndpointAddress (IN)"},
                 {v:0x02,m:"bmAttributes"},
                 {v:0x40,m:"wMaxPacketSizeLSB"},
                 {v:0x00,m:"wMaxPacketSizeMSB"},

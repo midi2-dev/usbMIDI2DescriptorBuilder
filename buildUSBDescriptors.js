@@ -273,7 +273,7 @@ function buildTinyUSBDescriptors(config){
             {v:0x01,m:"bFunctionClass"},
             {v:0x03,m:"bFunctionSubClass"},
             {v:0x00,m:"bFunctionProtocol"},
-            {v:0x00,m:"iFunction"},
+            {v:addString(ep.name), m: `iFunction - "${ep.name}"`},
 
             {m:"Interface - Audio Control"},
             {v:0x09,m:"bLength"},
@@ -284,7 +284,7 @@ function buildTinyUSBDescriptors(config){
             {v:0x01,m:"bInterfaceClass = AUDIO"},
             {v:0x01,m:"bInterfaceSubClass = AUDIO_CONTROL"},
             {v:0x00,m:"bInterfaceProtocol"},
-            {v:0x00,m:"iInterface"},
+            {v:addString(ep.name), m: `iInterface - "${ep.name}"`},
 
             {m:"Audio AC Descriptor - Header"},
             {v:0x09,m:"bLength"},
